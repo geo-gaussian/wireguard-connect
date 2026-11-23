@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a reproducible defect in the project scaffold or tooling
+about: Report a reproducible defect in the action or its tooling
 title: ''
 labels: bug
 assignees: ''
@@ -8,19 +8,19 @@ assignees: ''
 
 ## 🐛 Description
 
-Describe the problem. The action is currently a non-functional scaffold; do
-not include private keys, credentials, or live VPN configuration.
+Describe the problem. The action is an unverified Ubuntu MVP; do not include
+private keys, credentials, or live VPN configuration.
 
 ## 🔁 Steps to Reproduce
 
 1. ...
 2. ...
 
-## ✅ Expected Behavior
+## ✅ Expected Behaviour
 
 Describe what you expected to happen.
 
-## 📄 Actual Behavior
+## 📄 Actual Behaviour
 
 Describe what happened and include relevant redacted logs.
 

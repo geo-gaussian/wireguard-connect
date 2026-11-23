@@ -1,6 +1,0 @@
-name: WireGuard Connect
-description: Early-development scaffold; does not yet establish a WireGuard tunnel.
-author: Geo Gaussian Labs
-runs:
-  using: node20
-  main: dist/main/index.js

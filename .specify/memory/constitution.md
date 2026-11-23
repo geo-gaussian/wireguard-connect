@@ -12,13 +12,13 @@ not evidence that they work.
 ### 🔎 II. Verify Before Claiming Support
 
 Treat every operating system, architecture, DNS mechanism, and runner image as
-unsupported until its behavior has been tested. Clearly distinguish planned,
-implemented, and verified behavior in code, CI, and documentation.
+unsupported until its behaviour has been tested. Clearly distinguish planned,
+implemented, and verified behaviour in code, CI, and documentation.
 
-### 🧪 III. Test Behavior and Failure Paths
+### 🧪 III. Test Behaviour and Failure Paths
 
 Add focused tests for new functionality, invalid inputs, command construction,
-and partial failures. Privileged networking behavior requires integration
+and partial failures. Privileged networking behaviour requires integration
 tests on the platform where support is claimed.
 
 ### 🧩 IV. Keep the Action Small and Explicit
@@ -31,11 +31,11 @@ silently converting them into apparent success.
 
 GitHub Actions executes committed files from `dist/`; source changes require
 rebundling. Documentation must reflect the current implementation and identify
-unverified behavior.
+unverified behaviour.
 
 ## 🧰 Technical Constraints
 
-- Use strict TypeScript and the Node.js 20 GitHub Actions runtime.
+- Use strict TypeScript and the Node.js 24 GitHub Actions runtime.
 - Use pnpm 12.21.0 for repository development and dependency management.
 - Disable install lifecycle scripts; run project tooling explicitly.
 - Keep OS-specific commands under `src/platforms/`.
@@ -44,7 +44,7 @@ unverified behavior.
 
 ## 🔄 Development Workflow
 
-Use Spec Kit for substantial feature work: specify behavior, review the plan,
+Use Spec Kit for substantial feature work: specify behaviour, review the plan,
 generate tasks, implement, and validate. Run `pnpm run lint`, `pnpm test`, and
 `pnpm run build` before submitting code changes. Update generated bundles and
 related documentation in the same change.

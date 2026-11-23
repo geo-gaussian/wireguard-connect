@@ -10,9 +10,9 @@ assignees: ''
 
 What user need or problem should this address?
 
-## 🎯 Proposed Behavior
+## 🎯 Proposed Behaviour
 
-Describe the behavior and any important alternatives or constraints.
+Describe the behaviour and any important alternatives or constraints.
 
 ## ✅ Acceptance Criteria
 

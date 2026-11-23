@@ -3,8 +3,8 @@
 ## 🚧 Project Status
 
 This project is in early development and is not suitable for production use.
-The current action does not establish a VPN tunnel. There are no supported
-release versions yet.
+An Ubuntu MVP is implemented, but real tunnel, DNS, and cleanup behaviour has
+not yet been verified in integration tests. There are no supported releases.
 
 ## 🛡️ Security Requirements
 
@@ -19,8 +19,8 @@ The implementation is expected to:
 - Add tests for secret handling, input validation, command construction, and
   partial cleanup failures.
 
-These requirements describe intended safeguards; they are not a security
-certification of the current scaffold.
+These requirements are covered by unit tests with mocked system operations;
+they are not a security certification of the MVP.
 
 ## 📦 Dependency Installation
 
@@ -39,7 +39,7 @@ private channel listed in the repository's owner profile.
 
 ## ✅ Consumer Guidance
 
-Do not pass production secrets to this scaffold. When a functional release is
+Do not pass production secrets to this MVP. When a verified release is
 available, pin dependencies and action references according to your
-organization's security policy, and use the least network access the workflow
+organisation's security policy, and use the least network access the workflow
 requires.

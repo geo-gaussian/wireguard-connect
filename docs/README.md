@@ -6,13 +6,14 @@ implementation grows.
 ## 🧭 Current Documents
 
 - [Project overview](../README.md)
-- [Intended architecture](../ARCHITECTURE.md)
+- [Architecture](../ARCHITECTURE.md)
 - [Draft requirements](../BRD.md)
 - [Development guide](../DEVELOPMENT.md)
 - [Security policy](../SECURITY.md)
 - [Contribution guide](../CONTRIBUTING.md)
 - [AI assistant guidelines](../AGENTS.md)
 - [Spec Kit constitution](../.specify/memory/constitution.md)
+- [Ubuntu MVP specification](../specs/001-ubuntu-mvp/spec.md)
 
 ## 🗂️ Feature Documentation
 

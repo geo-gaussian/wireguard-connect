@@ -2,8 +2,8 @@
 
 ## 🧰 Prerequisites
 
-- Node.js 22.18 or later for development. The GitHub Action runtime remains
-  Node.js 20.
+- Node.js 24 or later for development; Node.js 26 LTS is recommended. The
+  GitHub Action runtime is Node.js 24.
 - pnpm 12.21.0, as pinned in `package.json`.
 - Git.
 
@@ -32,24 +32,31 @@ from running another package manager.
 | :--------------------- | :---------------------------------------------------- |
 | `pnpm run lint`        | Check formatting, spelling, and TypeScript types.     |
 | `pnpm test`            | Run the Jest tests.                                   |
-| `pnpm run build`       | Bundle the fail-fast action scaffold into `dist/`.    |
+| `pnpm run build`       | Bundle the main and post actions into `dist/`.        |
 | `pnpm run format`      | Apply Prettier formatting to supported project files. |
 | `pnpm run setup-hooks` | Configure the local Git pre-commit hook.              |
 
-The current test only verifies that the action fails explicitly while its
-functionality is unimplemented. Passing checks do not imply that VPN behavior
-works.
+Unit tests mock platform commands and filesystem operations. Passing checks
+does not verify real WireGuard or DNS behaviour.
+
+CI runs lint, tests, and builds on Node.js 24 and 26. It also checks that both
+action bundles are tracked and match the build output.
+
+The Actions toolkit is pinned to its latest CommonJS-compatible major version.
+TypeScript is pinned below version 7 because the current Jest transformer does
+not yet support it. Node.js type definitions match the action runtime rather
+than the latest development runtime.
 
 ## 📦 Bundling
 
 GitHub Actions executes the committed JavaScript in `dist/` directly. After
 changing `src/`, run `pnpm run build` and include the corresponding generated
-bundle changes. CI checks that the build output is synchronized with the
+bundle changes. CI checks that the build output is synchronised with the
 committed files.
 
 ## 🧪 Testing Expectations
 
-New validation and platform behavior should have focused unit tests. Network
+New validation and platform behaviour should have focused unit tests. Network
 interface and DNS changes require integration testing on each platform before
 that platform can be described as supported. The current CI workflow does not
 perform privileged networking tests.
@@ -61,9 +68,12 @@ feature work, start with `/speckit-specify`; use `/speckit-plan`,
 `/speckit-tasks`, and `/speckit-implement` to continue the workflow. Update the
 constitution through `/speckit-constitution` when project principles change.
 
+Spec Kit requires its managed workflow to retain the `workflow.yml` filename;
+do not rename it to `.yaml`.
+
 ## 🚫 Releases
 
 There are no production releases or supported versions yet. Do not publish a
-version or recommend this action for production use until its behavior,
+version or recommend this action for production use until its behaviour,
 security controls, platform coverage, and cleanup have been implemented and
 validated.

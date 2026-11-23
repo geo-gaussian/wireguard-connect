@@ -44,6 +44,35 @@ words:
   - prettier
   - SpecKit
 
+# Preserve the upstream Spec Kit command name.
+ignoreRegExpList:
+  - '/speckit-analyze/g'
+
+# cspell:disable
+flagWords:
+  - behavior->behaviour
+  - behaviors->behaviours
+  - organization->organisation
+  - organizations->organisations
+  - organizational->organisational
+  - synchronize->synchronise
+  - synchronized->synchronised
+  - synchronizing->synchronising
+  - initialize->initialise
+  - initialized->initialised
+  - initialization->initialisation
+  - artifact->artefact
+  - artifacts->artefacts
+  - color->colour
+  - colors->colours
+  - center->centre
+  - centers->centres
+  - analyze->analyse
+  - analyzed->analysed
+  - defense->defence
+  - offense->offence
+# cspell:enable
+
 useGitignore: true
 enableGlobDot: true
 allowCompoundWords: true

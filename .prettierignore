@@ -4,4 +4,5 @@ coverage/
 pnpm-lock.yaml
 .specify/scripts/
 .specify/templates/
+.specify/workflows/
 .github/skills/

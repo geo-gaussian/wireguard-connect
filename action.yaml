@@ -1,0 +1,35 @@
+name: WireGuard Connect
+description: Establish a temporary WireGuard tunnel on a GitHub-hosted Ubuntu runner.
+author: Geo Gaussian Labs
+inputs:
+  private-key:
+    description: Base64-encoded WireGuard client private key.
+    required: true
+  address:
+    description: Client IP address with CIDR prefix.
+    required: true
+  server-public-key:
+    description: Base64-encoded WireGuard server public key.
+    required: true
+  endpoint:
+    description: Server hostname or IP address and port.
+    required: true
+  allowed-ips:
+    description: Comma-separated networks routed through the tunnel.
+    required: true
+  dns-server:
+    description: Optional private DNS server IP address.
+    required: false
+  dns-domains:
+    description: Space-separated DNS suffixes routed to the private DNS server.
+    required: false
+  verify-host:
+    description: Optional host to ping after setup.
+    required: false
+outputs:
+  interface:
+    description: The generated WireGuard interface name.
+runs:
+  using: node24
+  main: dist/main/index.js
+  post: dist/post/index.js

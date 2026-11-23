@@ -2,13 +2,15 @@
 
 ## 🎯 Project Stage
 
-This repository is an early scaffold. The action currently fails explicitly;
-it does not configure WireGuard, DNS, or tunnel cleanup. Treat the architecture
-and requirements documents as plans, not proof of implemented behavior.
+This repository is in early development. An Ubuntu MVP implements WireGuard,
+optional split DNS, connectivity checking, and best-effort cleanup, but its
+real runner behaviour has not yet been validated. Do not describe it as
+production ready or claim verified platform support.
 
 ## 🧰 Tooling
 
-- Use pnpm 12.21.0 and Node.js 22.18 or later for repository development.
+- Use pnpm 12.21.0 and Node.js 24 or later for repository development.
+  Node.js 26 LTS is recommended.
 - Do not use npm or yarn for dependency management.
 - Install lifecycle scripts are disabled; do not override this protection.
   Run project scripts explicitly, for example with `pnpm run` or `pnpm test`.
@@ -31,7 +33,7 @@ When implementing tunnel support:
 5. Report failures explicitly; do not silently default or return success when
    setup or cleanup has failed.
 
-## 🧱 Code Organization
+## 🧱 Code Organisation
 
 - Keep shared input validation and configuration rendering in `src/config.ts`.
 - Keep operating-system-specific commands in `src/platforms/`.
@@ -53,13 +55,12 @@ When implementing tunnel support:
 
 ## 🧪 Tests and Bundles
 
-- Add focused tests for new behavior and its failure cases.
+- Add focused tests for new behaviour and its failure cases.
 - Add unit tests for every new platform command or validation rule, mocking
   `@actions/exec` and filesystem operations as appropriate.
 - Run `pnpm run lint`, `pnpm test`, and `pnpm run build` for code changes.
-- Keep committed `dist/` output synchronized with the TypeScript source.
-- Do not claim functional or integration coverage based only on the current
-  scaffold tests.
+- Keep committed `dist/` output synchronised with the TypeScript source.
+- Do not claim real-runner integration coverage based on mocked unit tests.
 
 ## 📝 Documentation
 
@@ -67,9 +68,14 @@ When implementing tunnel support:
   emoji.
 - Use two-space indentation in Markdown and preserve rendered list and code
   block structure.
-- Update docs when behavior or development workflows change, and run cspell.
-- Spec Kit-managed skills, scripts, and templates are generated assets; do not
-  reformat or hand-edit them unless the Spec Kit workflow requires it.
+- Use British English (en-GB) in project-authored prose. Preserve external
+  names, identifiers, and licence text as published.
+- Use the `.yaml` extension for project-authored YAML files.
+- Preserve the `.yml` filenames required by Spec Kit-managed assets.
+- Update docs when behaviour or development workflows change, and run cspell.
+- Spec Kit-managed skills, scripts, templates, and workflows are generated
+  assets; do not reformat or hand-edit them unless the Spec Kit workflow
+  requires it.
 - Keep examples free of credentials and other sensitive information.
 
 ## 🤖 Spec-Driven Workflow

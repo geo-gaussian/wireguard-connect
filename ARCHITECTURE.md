@@ -1,16 +1,16 @@
-# 🏗️ Intended Architecture
+# 🏗️ Architecture
 
-> **Status:** This describes a target design. The tunnel lifecycle and
-> platform implementations have not been built or validated yet.
+> **Status:** An Ubuntu MVP implements the lifecycle below, but real runner
+> behaviour and cleanup have not yet been validated end-to-end.
 
 ## 🎯 Design Goal
 
 The action is intended to create a temporary WireGuard connection for one
 workflow job and remove the tunnel and any related DNS configuration afterward.
-The eventual implementation should keep shared input validation separate from
+The implementation keeps shared input validation separate from
 operating-system-specific commands.
 
-## 🔄 Planned Lifecycle
+## 🔄 MVP Lifecycle
 
 1. Read and validate action inputs, masking secret values before any logging.
 2. Detect the runner operating system and ensure required WireGuard tooling is
@@ -21,36 +21,37 @@ operating-system-specific commands.
    the tunnel, and remove temporary configuration, including when an earlier
    workflow step fails.
 
-None of these lifecycle steps is currently implemented. A post step cannot
-guarantee cleanup if the runner terminates before it can run.
+A post step cannot guarantee cleanup if the runner terminates before it can
+run. If tunnel startup fails before it is recorded as active, the action relies
+on `wg-quick` to undo its partial setup.
 
-## 🧩 Planned Components
+## 🧩 Components
 
-| Area             | Intended responsibility                         | Current state                       |
-| :--------------- | :---------------------------------------------- | :---------------------------------- |
-| `src/main.ts`    | Validate inputs and start the tunnel            | Fails explicitly as a scaffold      |
-| `src/post.ts`    | Revert DNS and tear down the tunnel             | Empty placeholder                   |
-| `src/config.ts`  | Parse inputs and render WireGuard configuration | Empty placeholder                   |
-| `src/platforms/` | Isolate Linux, macOS, and Windows operations    | Empty placeholders                  |
-| `dist/`          | Bundled JavaScript consumed by GitHub Actions   | Main bundle is a fail-fast scaffold |
+| Area             | Intended responsibility                         | Current state                    |
+| :--------------- | :---------------------------------------------- | :------------------------------- |
+| `src/main.ts`    | Validate inputs and start the tunnel            | Ubuntu MVP                       |
+| `src/post.ts`    | Revert DNS and tear down the tunnel             | Best-effort cleanup              |
+| `src/config.ts`  | Parse inputs and render WireGuard configuration | Implemented                      |
+| `src/platforms/` | Isolate operating-system operations             | Linux MVP; other platforms empty |
+| `dist/`          | Bundled JavaScript consumed by GitHub Actions   | Main and post bundles            |
 
 ## 🖥️ Platform Strategy
 
-Linux, macOS, and Windows are candidate targets. The supported runner images,
-architectures, installation methods, DNS mechanisms, permissions, and teardown
-behavior remain to be specified and tested. Do not advertise a platform as
-supported until CI and integration testing provide evidence for it.
+The MVP targets GitHub-hosted Ubuntu and rejects self-hosted and non-Ubuntu
+runners. macOS and Windows are future candidates. Runner images, architectures,
+installation, DNS, permissions, and teardown remain unverified in live
+integration tests. Do not advertise a platform as verified until those pass.
 
 ## 🔐 Security Invariants
 
 The implementation must mask private keys, avoid interpolating inputs into
 shell commands, restrict configuration-file permissions before writing
 secrets, and attempt independent cleanup operations even if one cleanup step
-fails. These are requirements for future code, not claims about the current
-scaffold.
+fails. Unit tests exercise these paths with mocks, but they are not a security
+certification.
 
 ## ✅ Validation
 
 Unit tests should cover input validation and platform command construction.
-Privileged networking and DNS behavior require separate integration tests on
+Privileged networking and DNS behaviour require separate integration tests on
 the target runner platforms before support can be claimed.
