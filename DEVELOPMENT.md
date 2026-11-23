@@ -40,7 +40,11 @@ Unit tests mock platform commands and filesystem operations. Passing checks
 does not verify real WireGuard or DNS behaviour.
 
 CI runs lint, tests, and builds on Node.js 24 and 26. It also checks that both
-action bundles are tracked and match the build output.
+action bundles are tracked and match the build output. It runs on pushes to
+`main` and `v*` tags, and when pull requests targeting `main` are opened,
+updated, or reopened. Tag pushes do not publish a release or deploy the action.
+Tags pushed by a workflow using `GITHUB_TOKEN` generally do not trigger this
+workflow.
 
 The Actions toolkit is pinned to its latest CommonJS-compatible major version.
 TypeScript is pinned below version 7 because the current Jest transformer does
