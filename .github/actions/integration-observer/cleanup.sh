@@ -37,9 +37,25 @@ fi
 if ip link show dev wgc-host >/dev/null 2>&1; then
   sudo ip link delete wgc-host || failed=1
 fi
+if [ -f "$directory/peer-directory" ]; then
+  peer_directory=$(cat "$directory/peer-directory")
+  suffix=${peer_directory#/tmp/wgc-peer.}
+  case "$peer_directory:$suffix" in
+    /tmp/wgc-peer.????????:*[!a-zA-Z0-9]* | /tmp/wgc-peer.????????:) 
+      echo "Invalid peer directory." >&2
+      failed=1 ;;
+    /tmp/wgc-peer.????????:*)
+      sudo rm -f "$peer_directory/server.key" || failed=1
+      sudo rmdir "$peer_directory" || failed=1 ;;
+    *)
+      echo "Invalid peer directory." >&2
+      failed=1 ;;
+  esac
+fi
 if [ -d "$directory" ]; then
   rm -f "$directory/client.key" "$directory/server.key" "$directory/client.pub" \
-    "$directory/server.pub" "$directory/service.pid" "$directory/dnsmasq.pid" || failed=1
+    "$directory/server.pub" "$directory/service.pid" "$directory/dnsmasq.pid" \
+    "$directory/peer-directory" || failed=1
   rmdir "$directory" || failed=1
 fi
 exit "$failed"

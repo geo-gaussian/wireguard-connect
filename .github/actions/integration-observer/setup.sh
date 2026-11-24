@@ -30,9 +30,12 @@ server_public=$(cat "$directory/server.pub")
 printf '::add-mask::%s\n' "$client_private"
 printf 'private-key=%s\npublic-key=%s\n' "$client_private" "$server_public" >> "$GITHUB_OUTPUT"
 
+peer_directory=$(sudo mktemp -d /tmp/wgc-peer.XXXXXXXX)
+printf '%s\n' "$peer_directory" > "$directory/peer-directory"
+sudo install -m 600 "$directory/server.key" "$peer_directory/server.key"
+
 echo "Configuring isolated WireGuard peer."
 sudo ip netns add wgc-peer
-echo "Created peer namespace."
 sudo ip link add wgc-host type veth peer name wgc-remote
 sudo ip link set wgc-remote netns wgc-peer
 sudo ip addr add 198.18.0.1/30 dev wgc-host
@@ -41,13 +44,8 @@ sudo ip -n wgc-peer addr add 198.18.0.2/30 dev wgc-remote
 sudo ip -n wgc-peer link set wgc-remote up
 sudo ip -n wgc-peer link set lo up
 sudo ip -n wgc-peer link add wgcpeer type wireguard
-echo "Created peer interface."
 sudo ip -n wgc-peer addr add 10.99.0.1/24 dev wgcpeer
-echo "Applying peer keys."
-sudo ip netns exec wgc-peer id
-sudo ip netns exec wgc-peer cat /proc/self/attr/current
-sudo ip netns exec wgc-peer cat "$directory/server.key" > /dev/null
-sudo ip netns exec wgc-peer strace -e trace=openat wg set wgcpeer private-key "$directory/server.key" \
+sudo ip netns exec wgc-peer wg set wgcpeer private-key "$peer_directory/server.key" \
   listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
 sudo ip -n wgc-peer link set wgcpeer up
 
