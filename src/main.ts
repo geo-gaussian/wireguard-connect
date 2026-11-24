@@ -19,8 +19,20 @@ export async function run(): Promise<void> {
     await linux.ensureWireGuard();
     const interfaceName = `wgc${randomBytes(4).toString('hex')}`;
     const configPath = path.join('/etc/wireguard', `${interfaceName}.conf`);
-    core.saveState('configPath', configPath);
     core.saveState('interfaceName', interfaceName);
+    await linux.createConfig(configPath);
+    try {
+      core.saveState('configPath', configPath);
+    } catch (error) {
+      try {
+        await linux.removeConfig(configPath);
+      } catch (cleanupError) {
+        core.error(
+          `Failed to remove empty configuration after saving state failed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`,
+        );
+      }
+      throw error;
+    }
     await linux.writeConfig(configPath, renderConfig(config));
 
     await linux.up(configPath);

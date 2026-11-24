@@ -28,16 +28,19 @@ it('installs and verifies the tools if they are missing', async () => {
 it('creates and removes a restricted configuration without exposing its contents in arguments', async () => {
   const configPath = '/etc/wireguard/wgc12345678.conf';
   jest.mocked(exec.getExecOutput).mockResolvedValueOnce({ exitCode: 0, stdout: '', stderr: '' });
+  await linux.createConfig(configPath);
   await linux.writeConfig(configPath, 'private configuration');
   await linux.overwriteConfig(configPath);
   await linux.removeConfig(configPath);
   expect(exec.exec).toHaveBeenCalledWith('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
   expect(exec.exec).toHaveBeenCalledWith('sudo', [
-    'install',
-    '--mode=600',
-    '/dev/null',
-    configPath,
+    'dd',
+    'if=/dev/null',
+    `of=${configPath}`,
+    'oflag=excl',
+    'status=none',
   ]);
+  expect(exec.exec).toHaveBeenCalledWith('sudo', ['chmod', '600', '--', configPath]);
   expect(exec.exec).toHaveBeenCalledWith('sudo', ['dd', `of=${configPath}`, 'status=none'], {
     input: Buffer.from('private configuration'),
   });

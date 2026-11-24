@@ -31947,6 +31947,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ensureWireGuard = ensureWireGuard;
+exports.createConfig = createConfig;
 exports.writeConfig = writeConfig;
 exports.overwriteConfig = overwriteConfig;
 exports.removeConfig = removeConfig;
@@ -31967,9 +31968,12 @@ async function ensureWireGuard() {
         await io.which('wg-quick', true);
     }
 }
-async function writeConfig(configPath, contents) {
+async function createConfig(configPath) {
     await exec.exec('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
-    await exec.exec('sudo', ['install', '--mode=600', '/dev/null', configPath]);
+    await exec.exec('sudo', ['dd', 'if=/dev/null', `of=${configPath}`, 'oflag=excl', 'status=none']);
+}
+async function writeConfig(configPath, contents) {
+    await exec.exec('sudo', ['chmod', '600', '--', configPath]);
     await exec.exec('sudo', ['dd', `of=${configPath}`, 'status=none'], {
         input: Buffer.from(contents),
     });

@@ -14,7 +14,9 @@ jest.mock('@actions/core', () => ({
 jest.mock('node:fs');
 jest.mock('../src/platforms/linux', () => ({
   ensureWireGuard: jest.fn(),
+  createConfig: jest.fn(),
   writeConfig: jest.fn(),
+  removeConfig: jest.fn(),
   up: jest.fn(),
   down: jest.fn(),
   configureDns: jest.fn(),
@@ -29,6 +31,7 @@ let inputs: Record<string, string>;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.mocked(core.saveState).mockReset();
   Object.defineProperty(process, 'platform', { value: 'linux', configurable: true });
   process.env.RUNNER_ENVIRONMENT = 'github-hosted';
   inputs = {
@@ -102,6 +105,24 @@ it('does not mark the tunnel active if startup fails', async () => {
   expect(core.saveState).toHaveBeenCalledWith('configPath', expect.any(String));
   expect(core.saveState).not.toHaveBeenCalledWith('tunnelUp', 'true');
   expect(core.setFailed).toHaveBeenCalledWith('startup failed');
+});
+
+it('does not remove an existing configuration when exclusive creation fails', async () => {
+  jest.mocked(linux.createConfig).mockRejectedValueOnce(new Error('configuration exists'));
+  await run();
+  expect(core.saveState).not.toHaveBeenCalledWith('configPath', expect.any(String));
+  expect(linux.removeConfig).not.toHaveBeenCalled();
+  expect(core.setFailed).toHaveBeenCalledWith('configuration exists');
+});
+
+it('removes the empty configuration if recording its path fails', async () => {
+  jest.mocked(core.saveState).mockImplementation((name) => {
+    if (name === 'configPath') throw new Error('state unavailable');
+  });
+  await run();
+  expect(linux.removeConfig).toHaveBeenCalledTimes(1);
+  expect(linux.writeConfig).not.toHaveBeenCalled();
+  expect(core.setFailed).toHaveBeenCalledWith('state unavailable');
 });
 
 it('records DNS cleanup before a partial DNS setup fails', async () => {

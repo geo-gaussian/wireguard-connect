@@ -1,7 +1,7 @@
 # 🔌 WireGuard Connect Action
 
-> **Early development:** An Ubuntu MVP is implemented, but has not yet been
-> validated end-to-end on a GitHub-hosted runner. Do not use it in production.
+> **Early development:** The Ubuntu MVP has limited runner-local integration
+> coverage. It is not production-ready.
 
 ## 🎯 Project Goal
 
@@ -17,9 +17,9 @@ and [architecture](./ARCHITECTURE.md).
 ## 🚧 Current State
 
 The MVP implements tunnel setup, optional split DNS and connectivity checking,
-and best-effort post-job cleanup. Unit tests mock operating-system commands;
-real tunnel and DNS behaviour still requires integration testing. No supported
-release is available yet.
+and best-effort post-job cleanup. Integration tests exercise a disposable
+runner-local peer, DNS, and cleanup, but do not test external servers or prove
+production readiness. No supported release is available yet.
 
 ## 🚀 Trial Usage
 

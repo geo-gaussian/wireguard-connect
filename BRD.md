@@ -45,5 +45,5 @@ end of the job.
 ## 🚧 Current Status
 
 This document records project intent. The Ubuntu MVP implements the intended
-lifecycle with best-effort cleanup, but no platform has yet been accepted
-through real runner integration testing.
+lifecycle with best-effort cleanup. Runner-local integration tests provide
+limited Ubuntu coverage, but no platform has been accepted for production.

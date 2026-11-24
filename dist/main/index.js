@@ -32099,8 +32099,20 @@ async function run() {
         await linux.ensureWireGuard();
         const interfaceName = `wgc${(0, node_crypto_1.randomBytes)(4).toString('hex')}`;
         const configPath = path.join('/etc/wireguard', `${interfaceName}.conf`);
-        core.saveState('configPath', configPath);
         core.saveState('interfaceName', interfaceName);
+        await linux.createConfig(configPath);
+        try {
+            core.saveState('configPath', configPath);
+        }
+        catch (error) {
+            try {
+                await linux.removeConfig(configPath);
+            }
+            catch (cleanupError) {
+                core.error(`Failed to remove empty configuration after saving state failed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+            }
+            throw error;
+        }
         await linux.writeConfig(configPath, (0, config_1.renderConfig)(config));
         await linux.up(configPath);
         try {
@@ -32173,6 +32185,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ensureWireGuard = ensureWireGuard;
+exports.createConfig = createConfig;
 exports.writeConfig = writeConfig;
 exports.overwriteConfig = overwriteConfig;
 exports.removeConfig = removeConfig;
@@ -32193,9 +32206,12 @@ async function ensureWireGuard() {
         await io.which('wg-quick', true);
     }
 }
-async function writeConfig(configPath, contents) {
+async function createConfig(configPath) {
     await exec.exec('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
-    await exec.exec('sudo', ['install', '--mode=600', '/dev/null', configPath]);
+    await exec.exec('sudo', ['dd', 'if=/dev/null', `of=${configPath}`, 'oflag=excl', 'status=none']);
+}
+async function writeConfig(configPath, contents) {
+    await exec.exec('sudo', ['chmod', '600', '--', configPath]);
     await exec.exec('sudo', ['dd', `of=${configPath}`, 'status=none'], {
         input: Buffer.from(contents),
     });

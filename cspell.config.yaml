@@ -41,8 +41,10 @@ words:
   - WireGuard
   - cspell
   - dnsmasq
+  - excl
   - netns
   - noproxy
+  - oflag
   - pnpm
   - prettier
   - resolv
