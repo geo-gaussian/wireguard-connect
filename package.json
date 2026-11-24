@@ -1,6 +1,6 @@
 {
   "name": "wireguard-connect-action",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "commonjs",
   "packageManager": "pnpm@12.21.0",

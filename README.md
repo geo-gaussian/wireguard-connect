@@ -23,43 +23,80 @@ release is available yet.
 
 ## 🚀 Trial Usage
 
-The following example uses a checked-out copy of the action. It is intended for
-testing only, with an independently configured WireGuard peer and GitHub
-repository secret and variables:
+This example is for testing the experimental `v0.1.0` MVP from another
+repository on a GitHub-hosted Ubuntu runner. It works once that tag has been
+published. Do not use production secrets with this unverified MVP.
+
+Before running it:
+
+- Configure a separate WireGuard peer that accepts the client public key and
+  address. Its endpoint must be reachable from the GitHub-hosted runner.
+- Add `WG_PRIVATE_KEY` as a secret in the consuming repository. Add
+  `WG_ADDRESS`, `WG_SERVER_PUBLIC_KEY`, `WG_ENDPOINT`, and `WG_ALLOWED_IPS`
+  as repository variables.
+- Add `PRIVATE_SERVICE_URL` as a repository variable containing the URL of a
+  service reachable through the tunnel.
+- If the action repository is private, enable
+  [access from the consuming repository](https://docs.github.com/en/actions/how-tos/reuse-automations/share-across-private-repositories).
 
 ```yaml
-steps:
-  - uses: actions/checkout@v7
-  - uses: ./
-    with:
-      private-key: ${{ secrets.WG_PRIVATE_KEY }}
-      address: ${{ vars.WG_ADDRESS }}
-      server-public-key: ${{ vars.WG_SERVER_PUBLIC_KEY }}
-      endpoint: ${{ vars.WG_ENDPOINT }}
-      allowed-ips: ${{ vars.WG_ALLOWED_IPS }}
-      dns-server: ${{ vars.WG_DNS_SERVER }}
-      dns-domains: ${{ vars.WG_DNS_DOMAINS }}
-      verify-host: ${{ vars.WG_VERIFY_HOST }}
+name: Trial WireGuard connection
+
+on: workflow_dispatch
+
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect to WireGuard
+        uses: geo-gaussian/wireguard-connect@v0.1.0
+        with:
+          private-key: ${{ secrets.WG_PRIVATE_KEY }}
+          address: ${{ vars.WG_ADDRESS }}
+          server-public-key: ${{ vars.WG_SERVER_PUBLIC_KEY }}
+          endpoint: ${{ vars.WG_ENDPOINT }}
+          allowed-ips: ${{ vars.WG_ALLOWED_IPS }}
+      - name: Reach a private service
+        env:
+          PRIVATE_SERVICE_URL: ${{ vars.PRIVATE_SERVICE_URL }}
+        run: curl --fail -- "$PRIVATE_SERVICE_URL"
 ```
 
-`private-key` and `server-public-key` must each be a base64-encoded 32-byte
-WireGuard key. Store the private key as a GitHub secret. The `endpoint` must
-be a hostname or IP address followed by a port from 1 to 65535; IPv6 endpoints
-use brackets.
+This version is intended only for trials and is not a supported production
+release. Unlike `@main`, the version tag identifies the intended release;
+maintainers must not move or reuse it.
 
-`dns-server` and `dns-domains` are optional but must be supplied together.
-`dns-domains` is a space-separated list of suffixes; `allowed-ips` is a
-comma-separated list of CIDR networks. `address` is a single IP address with a
-CIDR prefix. The DNS server must be an IP address reachable through the
-configured routes. DNS suffixes are configured as route-only domains.
-`verify-host` optionally performs an ICMP ping, which may fail if the target
-blocks ICMP even when the tunnel is working. The `interface` output contains
-the generated interface name.
+### 📥 Inputs and Output
+
+| Input               | Required | Description                                                                                            |
+| :------------------ | :------- | :----------------------------------------------------------------------------------------------------- |
+| `private-key`       | Yes      | Base64-encoded 32-byte client private key; use a GitHub secret.                                        |
+| `address`           | Yes      | Single client IP address with a CIDR prefix.                                                           |
+| `server-public-key` | Yes      | Base64-encoded 32-byte server public key.                                                              |
+| `endpoint`          | Yes      | Server hostname or IP address and port from 1 to 65535; IPv6 addresses use brackets.                   |
+| `allowed-ips`       | Yes      | Comma-separated CIDR networks routed through the tunnel.                                               |
+| `dns-server`        | No       | Private DNS server IP address; requires `dns-domains`.                                                 |
+| `dns-domains`       | No       | Space-separated route-only DNS suffixes; requires `dns-server`.                                        |
+| `verify-host`       | No       | IP address or hostname to ping after setup; targets that block ICMP may fail despite a working tunnel. |
+
+The optional DNS server must be reachable through the configured routes.
+If the private service URL needs private DNS, supply both DNS inputs.
+After successful setup, the `interface` output contains the generated
+WireGuard interface name.
+
+### 🧹 Tunnel Lifecycle
 
 Specify only necessary `allowed-ips`: routing all traffic through the tunnel
 may interrupt the runner's connection to GitHub. The action requires `sudo`,
-`apt-get` if installation is needed, and `resolvectl` for split DNS. Cleanup
-is best-effort and cannot run if the runner terminates unexpectedly.
+`apt-get` if installation is needed, and `resolvectl` for split DNS. Subsequent
+steps in the same job can use the tunnel. At job end, the action attempts to
+revert DNS, stop the tunnel, and remove its temporary configuration. Cleanup is
+best-effort and cannot run if the runner terminates unexpectedly.
+
+### 🛠️ Testing a Checkout
+
+To try a checked-out copy of this action instead, use `actions/checkout@v7`
+followed by `uses: ./` with the same inputs.
 
 ## 🧰 Development
 

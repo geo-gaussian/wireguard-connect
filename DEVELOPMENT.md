@@ -75,9 +75,31 @@ constitution through `/speckit-constitution` when project principles change.
 Spec Kit requires its managed workflow to retain the `workflow.yml` filename;
 do not rename it to `.yaml`.
 
-## 🚫 Releases
+## 📦 Experimental MVP Release
 
-There are no production releases or supported versions yet. Do not publish a
-version or recommend this action for production use until its behaviour,
-security controls, platform coverage, and cleanup have been implemented and
-validated.
+The planned `v0.1.0` release is experimental and unsupported for production.
+Publishing it does not verify real-runner tunnel, DNS, or cleanup behaviour.
+Do not recommend production use until behaviour, security controls, platform
+coverage, and cleanup have been validated.
+
+To publish the MVP:
+
+1. Merge the release preparation changes into `main`. Confirm lint, tests,
+   builds, and bundle checks pass in CI for the exact commit to be released.
+2. From the repository's `action.yaml` on GitHub, select **Draft a release**.
+   Choose the verified commit as the target and create the `v0.1.0` tag.
+3. Mark the release as a pre-release and explain in its notes that the MVP is
+   experimental, targets GitHub-hosted Ubuntu, and has not been tested
+   end-to-end on a real runner. Do not move or reuse the version tag.
+4. To list the action on GitHub Marketplace, select **Publish this Action to
+   the GitHub Marketplace** and follow GitHub's prompts. The action name must
+   be available, the repository owner must accept the Marketplace Developer
+   Agreement, and the publisher must use two-factor authentication. See
+   [GitHub's publishing guidance](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace).
+5. Publish the release and check the `v0.1.0` tag workflow. A tag push runs
+   checks but does not itself publish a release or Marketplace listing.
+
+The package version tracks the intended release, but consumers use the Git
+tag, not the package version, to reference the action. The Marketplace name is
+`Geo Gaussian WireGuard Connect`; GitHub checks its availability when
+publishing.
