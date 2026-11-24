@@ -1,0 +1,11 @@
+name: Prepare and observe integration peer
+description: Set up a temporary peer and verify post-job cleanup.
+outputs:
+  private-key:
+    description: Ephemeral client private key.
+  public-key:
+    description: Ephemeral server public key.
+runs:
+  using: node24
+  main: main.cjs
+  post: post.cjs

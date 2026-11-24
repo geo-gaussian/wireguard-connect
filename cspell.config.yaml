@@ -40,9 +40,15 @@ words:
   - TypeScript
   - WireGuard
   - cspell
+  - dnsmasq
+  - netns
+  - noproxy
   - pnpm
   - prettier
+  - resolv
   - SpecKit
+  - veth
+  - wgcpeer
 
 # Preserve the upstream Spec Kit command name.
 ignoreRegExpList:
