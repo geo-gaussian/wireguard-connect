@@ -32085,7 +32085,6 @@ exports.run = run;
 const core = __importStar(__nccwpck_require__(2701));
 const node_crypto_1 = __nccwpck_require__(7598);
 const fs = __importStar(__nccwpck_require__(3024));
-const os = __importStar(__nccwpck_require__(8161));
 const path = __importStar(__nccwpck_require__(6760));
 const config_1 = __nccwpck_require__(5822);
 const linux = __importStar(__nccwpck_require__(1107));
@@ -32099,11 +32098,22 @@ async function run() {
         }
         await linux.ensureWireGuard();
         const interfaceName = `wgc${(0, node_crypto_1.randomBytes)(4).toString('hex')}`;
-        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'wireguard-connect-'));
-        const configPath = path.join(directory, `${interfaceName}.conf`);
-        core.saveState('configPath', configPath);
+        const configPath = path.join('/etc/wireguard', `${interfaceName}.conf`);
         core.saveState('interfaceName', interfaceName);
-        fs.writeFileSync(configPath, (0, config_1.renderConfig)(config), { flag: 'wx', mode: 0o600 });
+        await linux.createConfig(configPath);
+        try {
+            core.saveState('configPath', configPath);
+        }
+        catch (error) {
+            try {
+                await linux.removeConfig(configPath);
+            }
+            catch (cleanupError) {
+                core.error(`Failed to remove empty configuration after saving state failed: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+            }
+            throw error;
+        }
+        await linux.writeConfig(configPath, (0, config_1.renderConfig)(config));
         await linux.up(configPath);
         try {
             core.saveState('tunnelUp', 'true');
@@ -32175,6 +32185,10 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ensureWireGuard = ensureWireGuard;
+exports.createConfig = createConfig;
+exports.writeConfig = writeConfig;
+exports.overwriteConfig = overwriteConfig;
+exports.removeConfig = removeConfig;
 exports.up = up;
 exports.configureDns = configureDns;
 exports.verifyHost = verifyHost;
@@ -32191,6 +32205,30 @@ async function ensureWireGuard() {
         await io.which('wg', true);
         await io.which('wg-quick', true);
     }
+}
+async function createConfig(configPath) {
+    await exec.exec('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
+    await exec.exec('sudo', ['dd', 'if=/dev/null', `of=${configPath}`, 'conv=excl', 'status=none']);
+}
+async function writeConfig(configPath, contents) {
+    await exec.exec('sudo', ['chmod', '600', '--', configPath]);
+    await exec.exec('sudo', ['dd', `of=${configPath}`, 'status=none'], {
+        input: Buffer.from(contents),
+    });
+}
+async function overwriteConfig(configPath) {
+    const result = await exec.getExecOutput('sudo', ['test', '-e', configPath], {
+        ignoreReturnCode: true,
+        silent: true,
+    });
+    if (result.exitCode === 1)
+        return;
+    if (result.exitCode !== 0)
+        throw new Error('Failed to check the configuration file.');
+    await exec.exec('sudo', ['shred', '--iterations=0', '--zero', '--', configPath]);
+}
+async function removeConfig(configPath) {
+    await exec.exec('sudo', ['rm', '-f', '--', configPath]);
 }
 async function up(configPath) {
     await exec.exec('sudo', ['wg-quick', 'up', configPath]);
@@ -32375,14 +32413,6 @@ module.exports = require("node:http2");
 
 "use strict";
 module.exports = require("node:net");
-
-/***/ }),
-
-/***/ 8161:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:os");
 
 /***/ }),
 

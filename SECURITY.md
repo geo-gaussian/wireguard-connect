@@ -3,8 +3,8 @@
 ## 🚧 Project Status
 
 This project is in early development and is not suitable for production use.
-An Ubuntu MVP is implemented, but real tunnel, DNS, and cleanup behaviour has
-not yet been verified in integration tests. There are no supported releases.
+The Ubuntu MVP has runner-local integration coverage, but has not been
+independently security reviewed. There are no supported releases.
 
 ## 🛡️ Security Requirements
 
@@ -19,8 +19,12 @@ The implementation is expected to:
 - Add tests for secret handling, input validation, command construction, and
   partial cleanup failures.
 
-These requirements are covered by unit tests with mocked system operations;
-they are not a security certification of the MVP.
+Unit tests mock system operations; integration tests exercise tunnel, DNS, and
+cleanup against a disposable peer. Neither is a security certification.
+
+CI also audits production dependencies and runs CodeQL analysis. GitHub secret
+scanning and push protection are enabled for the repository. These checks do
+not detect every vulnerability or replace an independent security review.
 
 ## 📦 Dependency Installation
 

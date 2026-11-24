@@ -1,0 +1,31 @@
+name: Run WireGuard integration scenario
+description: Exercise the action against an isolated runner-local peer.
+inputs:
+  scenario:
+    description: The success or failure scenario.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Prepare peer and register cleanup verification
+      id: peer
+      uses: ./.github/actions/integration-observer
+    - name: Connect to the test peer
+      id: tunnel
+      uses: ./
+      continue-on-error: ${{ inputs.scenario == 'failure' }}
+      with:
+        private-key: ${{ steps.peer.outputs.private-key }}
+        address: 10.99.0.2/32
+        server-public-key: ${{ steps.peer.outputs.public-key }}
+        endpoint: 198.18.0.2:51820
+        allowed-ips: 10.99.0.0/24
+        dns-server: 10.99.0.1
+        dns-domains: internal.test
+        verify-host: ${{ inputs.scenario == 'failure' && '10.99.0.254' || '10.99.0.1' }}
+    - name: Verify the scenario
+      shell: sh
+      env:
+        SCENARIO: ${{ inputs.scenario }}
+        TUNNEL_OUTCOME: ${{ steps.tunnel.outcome }}
+      run: sh .github/actions/integration-test/verify.sh

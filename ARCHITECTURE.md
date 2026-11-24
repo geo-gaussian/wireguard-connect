@@ -1,7 +1,7 @@
 # 🏗️ Architecture
 
-> **Status:** An Ubuntu MVP implements the lifecycle below, but real runner
-> behaviour and cleanup have not yet been validated end-to-end.
+> **Status:** An Ubuntu MVP implements the lifecycle below and has limited
+> runner-local integration coverage; it is not production-ready.
 
 ## 🎯 Design Goal
 
@@ -24,6 +24,8 @@ operating-system-specific commands.
 A post step cannot guarantee cleanup if the runner terminates before it can
 run. If tunnel startup fails before it is recorded as active, the action relies
 on `wg-quick` to undo its partial setup.
+The configuration is created exclusively under `/etc/wireguard`, restricted
+before secrets are written, and overwritten and removed during teardown.
 
 ## 🧩 Components
 
@@ -39,8 +41,8 @@ on `wg-quick` to undo its partial setup.
 
 The MVP targets GitHub-hosted Ubuntu and rejects self-hosted and non-Ubuntu
 runners. macOS and Windows are future candidates. Runner images, architectures,
-installation, DNS, permissions, and teardown remain unverified in live
-integration tests. Do not advertise a platform as verified until those pass.
+external connectivity, architectures, and different runner images require
+further testing before production support can be claimed.
 
 ## 🔐 Security Invariants
 
@@ -52,6 +54,6 @@ certification.
 
 ## ✅ Validation
 
-Unit tests should cover input validation and platform command construction.
-Privileged networking and DNS behaviour require separate integration tests on
-the target runner platforms before support can be claimed.
+Unit tests cover input validation and platform command construction. Integration
+tests exercise privileged networking, DNS, and teardown against a peer isolated
+on the same GitHub-hosted Ubuntu runner. They do not test external connectivity.

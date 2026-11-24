@@ -36,15 +36,22 @@ from running another package manager.
 | `pnpm run format`      | Apply Prettier formatting to supported project files. |
 | `pnpm run setup-hooks` | Configure the local Git pre-commit hook.              |
 
-Unit tests mock platform commands and filesystem operations. Passing checks
-does not verify real WireGuard or DNS behaviour.
+Unit tests mock platform commands and filesystem operations. CI runs lint,
+unit tests, and builds on Node.js 24 and 26, checks the committed bundles,
+audits production dependencies, and runs CodeQL analysis.
 
-CI runs lint, tests, and builds on Node.js 24 and 26. It also checks that both
-action bundles are tracked and match the build output. It runs on pushes to
-`main` and `v*` tags, and when pull requests targeting `main` are opened,
-updated, or reopened. Tag pushes do not publish a release or deploy the action.
-Tags pushed by a workflow using `GITHUB_TOKEN` generally do not trigger this
-workflow.
+CI runs on pushes to `main` and `v*` tags, and when pull requests targeting
+`main` are opened, updated, or reopened. Integration tests run automatically
+on those pushes. For pull requests, they wait for approval in the
+`integration-approval` environment; the `Integration gate` check fails if
+either scenario does not pass. Maintainers can also run the workflow manually
+or call it as a reusable workflow with the Boolean `run_integration_tests`
+input. When that input is false, those runs skip integration tests.
+The workflow distinguishes direct runs from reusable calls using its
+repository and workflow path; update that comparison if either changes.
+
+Tag pushes do not publish a release or deploy the action. Tags pushed by a
+workflow using `GITHUB_TOKEN` generally do not trigger this workflow.
 
 The Actions toolkit is pinned to its latest CommonJS-compatible major version.
 TypeScript is pinned below version 7 because the current Jest transformer does
@@ -60,10 +67,24 @@ committed files.
 
 ## 🧪 Testing Expectations
 
-New validation and platform behaviour should have focused unit tests. Network
-interface and DNS changes require integration testing on each platform before
-that platform can be described as supported. The current CI workflow does not
-perform privileged networking tests.
+New validation and platform behaviour should have focused unit tests. The
+integration scenarios create an isolated, temporary WireGuard peer and DNS
+server on a GitHub-hosted Ubuntu runner. They check connectivity, DNS, a
+deliberate setup failure, and post-job cleanup. The peer is on the same runner,
+so these checks do not verify reachability to an external server. They require
+no persistent WireGuard credentials.
+
+Review changes to the workflow and test harness before approving a run. Do
+not pass production secrets to pull requests or run untrusted pull request code
+with privileged credentials. Required checks are configured in GitHub's
+mainline ruleset, not solely by the workflow. The `Integration gate` must
+remain a required check. The current ruleset does not require independent
+review of workflow and test changes, which could bypass the gate; review them
+carefully. GitHub treats skipped required checks as successful.
+
+Network and DNS behaviour require integration testing on each platform before
+that platform can be described as supported. Passing automated checks does not
+replace a security review or establish production readiness.
 
 ## 🧭 Spec Kit
 
@@ -85,12 +106,13 @@ coverage, and cleanup have been validated.
 To publish the MVP:
 
 1. Merge the release preparation changes into `main`. Confirm lint, tests,
-   builds, and bundle checks pass in CI for the exact commit to be released.
+   builds, security checks, and integration tests pass in CI for the exact
+   commit to be released. Complete a security review before production use.
 2. From the repository's `action.yaml` on GitHub, select **Draft a release**.
    Choose the verified commit as the target and create the `v0.1.0` tag.
 3. Mark the release as a pre-release and explain in its notes that the MVP is
-   experimental, targets GitHub-hosted Ubuntu, and has not been tested
-   end-to-end on a real runner. Do not move or reuse the version tag.
+   experimental, targets GitHub-hosted Ubuntu, and has only runner-local
+   integration coverage. Do not move or reuse the version tag.
 4. To list the action on GitHub Marketplace, select **Publish this Action to
    the GitHub Marketplace** and follow GitHub's prompts. The action name must
    be available, the repository owner must accept the Marketplace Developer
