@@ -47,6 +47,8 @@ sudo ip -n wgc-peer link add wgcpeer type wireguard
 sudo ip -n wgc-peer addr add 10.99.0.1/24 dev wgcpeer
 sudo ip netns exec wgc-peer which wg
 sudo getcap /usr/bin/wg
+# cspell:ignore apparmor
+sudo grep -R -A 35 -B 5 'profile wg' /etc/apparmor.d || echo "Profile file not found."
 if ! sudo ip netns exec wgc-peer strace -f -e trace=openat,execve,setuid,setresuid,capset \
   wg set wgcpeer private-key "$peer_directory/server.key" \
   listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32; then
