@@ -30,7 +30,8 @@ for pid_file in "$directory/service.pid" "$directory/dnsmasq.pid"; do
     esac
   fi
 done
-if sudo ip netns list | grep -q '^wgc-peer '; then
+namespaces=$(sudo ip netns list) || failed=1
+if printf '%s\n' "$namespaces" | grep -q '^wgc-peer\( \|$\)'; then
   sudo ip netns delete wgc-peer || failed=1
 fi
 if ip link show dev wgc-host >/dev/null 2>&1; then
@@ -38,7 +39,7 @@ if ip link show dev wgc-host >/dev/null 2>&1; then
 fi
 if [ -d "$directory" ]; then
   rm -f "$directory/client.key" "$directory/server.key" "$directory/client.pub" \
-    "$directory/server.pub" "$directory/service.pid" "$directory/dnsmasq.pid"
+    "$directory/server.pub" "$directory/service.pid" "$directory/dnsmasq.pid" || failed=1
   rmdir "$directory" || failed=1
 fi
 exit "$failed"
