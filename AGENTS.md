@@ -4,8 +4,9 @@
 
 This repository is in early development. An Ubuntu MVP implements WireGuard,
 optional split DNS, connectivity checking, and best-effort cleanup, but its
-real runner behaviour has not yet been validated. Do not describe it as
-production ready or claim verified platform support.
+runner-local integration tests do not establish external connectivity or
+production readiness. Do not describe it as production ready or claim verified
+platform support.
 
 ## 🧰 Tooling
 

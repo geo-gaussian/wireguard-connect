@@ -6,6 +6,8 @@
 > **Early development:** The Ubuntu MVP has limited runner-local integration
 > coverage. It is not production-ready.
 
+The coverage badge reports unit tests, not integration tests.
+
 ## 🎯 Project Goal
 
 WireGuard Connect is intended to become a GitHub Action that gives workflow jobs

@@ -1,8 +1,8 @@
 # 🤝 Contributing
 
 Thanks for helping build WireGuard Connect. The project is currently an
-unverified Ubuntu MVP, so contributions should distinguish implemented
-behaviour from behaviour that has been tested on real runners.
+experimental Ubuntu MVP, so contributions should distinguish runner-local
+test coverage from unverified external connectivity and production support.
 
 ## 🚀 Getting Started
 
@@ -31,9 +31,11 @@ documentation in step with the behaviour they describe.
 
 ## 🧪 Tests and Platform Claims
 
-Add focused unit tests for new logic and failure cases. Network setup, split
-DNS, and cleanup need platform integration tests before any OS or architecture
-is described as verified. The current MVP does not provide those tests.
+Add focused unit tests for new logic and failure cases. Tests live in `tests/`;
+run `pnpm run test:coverage` to inspect unit coverage. Runner-local integration
+tests exercise network setup, split DNS, and cleanup on GitHub-hosted Ubuntu.
+External connectivity and other platforms require further testing before
+support can be claimed.
 
 ## 🔐 Security
 

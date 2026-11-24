@@ -19,8 +19,9 @@ The implementation is expected to:
 - Add tests for secret handling, input validation, command construction, and
   partial cleanup failures.
 
-Unit tests mock system operations; integration tests exercise tunnel, DNS, and
-cleanup against a disposable peer. Neither is a security certification.
+Tunnel unit tests mock system operations; integration tests exercise tunnel,
+DNS, and cleanup against a disposable runner-local peer. Neither is a security
+certification.
 
 CI also audits production dependencies. GitHub-managed CodeQL scans the
 default branch and eligible pull requests; GitHub secret scanning and push

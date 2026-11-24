@@ -1,6 +1,7 @@
 # 🔌 Ubuntu WireGuard MVP
 
-**Status:** Implemented; live runner acceptance remains unverified.
+**Status:** Implemented with runner-local integration tests; broader acceptance
+and production readiness remain unverified.
 
 ## 🎯 User Scenarios
 

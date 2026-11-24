@@ -37,8 +37,9 @@ from running another package manager.
 | `pnpm run format`        | Apply Prettier formatting to supported project files. |
 | `pnpm run setup-hooks`   | Configure the local Git pre-commit hook.              |
 
-Unit tests mock platform commands and filesystem operations. CI runs lint,
-unit tests, and builds on Node.js 24 and 26, and audits production dependencies.
+Tests in `tests/` mock tunnel platform commands and filesystem operations; the
+release-script tests use temporary local Git repositories. CI runs lint, unit
+tests, and builds on Node.js 24 and 26, and audits production dependencies.
 On release tag pushes, CI also verifies that the committed bundles match a
 fresh build.
 
@@ -118,9 +119,9 @@ do not rename it to `.yaml`.
 ## 📦 Experimental MVP Release
 
 The planned `v0.1.0` release is experimental and unsupported for production.
-Publishing it does not verify real-runner tunnel, DNS, or cleanup behaviour.
-Do not recommend production use until behaviour, security controls, platform
-coverage, and cleanup have been validated.
+Runner-local integration tests do not verify external peer connectivity or
+establish production readiness. Do not recommend production use until
+behaviour, security controls, platform coverage, and cleanup have been validated.
 
 To publish the MVP:
 

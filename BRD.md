@@ -1,7 +1,7 @@
 # 📋 Business Requirements (Draft)
 
-**Status:** Draft; an Ubuntu MVP is implemented but not acceptance-tested on
-a real runner.
+**Status:** Draft; an Ubuntu MVP is implemented with limited runner-local
+integration coverage, but has not been accepted for production.
 
 ## 🎯 Objective
 

@@ -40,9 +40,9 @@ before secrets are written, and overwritten and removed during teardown.
 ## 🖥️ Platform Strategy
 
 The MVP targets GitHub-hosted Ubuntu and rejects self-hosted and non-Ubuntu
-runners. macOS and Windows are future candidates. Runner images, architectures,
-external connectivity, architectures, and different runner images require
-further testing before production support can be claimed.
+runners. macOS and Windows are future candidates. Architectures, runner images,
+and external connectivity require further testing before production support
+can be claimed.
 
 ## 🔐 Security Invariants
 
