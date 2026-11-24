@@ -47,7 +47,7 @@ echo "Applying peer keys."
 sudo ip netns exec wgc-peer id
 sudo ip netns exec wgc-peer cat /proc/self/attr/current
 sudo ip netns exec wgc-peer cat "$directory/server.key" > /dev/null
-sudo ip netns exec wgc-peer wg set wgcpeer private-key "$directory/server.key" \
+sudo ip netns exec wgc-peer strace -e trace=openat wg set wgcpeer private-key "$directory/server.key" \
   listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
 sudo ip -n wgc-peer link set wgcpeer up
 
