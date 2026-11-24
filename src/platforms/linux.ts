@@ -15,7 +15,8 @@ export async function ensureWireGuard(): Promise<void> {
 
 export async function writeConfig(configPath: string, contents: string): Promise<void> {
   await exec.exec('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
-  await exec.exec('sudo', ['install', '-m', '600', '/dev/stdin', configPath], {
+  await exec.exec('sudo', ['install', '--mode=600', '/dev/null', configPath]);
+  await exec.exec('sudo', ['dd', `of=${configPath}`, 'status=none'], {
     input: Buffer.from(contents),
   });
 }

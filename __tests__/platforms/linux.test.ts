@@ -32,11 +32,15 @@ it('creates and removes a restricted configuration without exposing its contents
   await linux.overwriteConfig(configPath);
   await linux.removeConfig(configPath);
   expect(exec.exec).toHaveBeenCalledWith('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
-  expect(exec.exec).toHaveBeenCalledWith(
-    'sudo',
-    ['install', '-m', '600', '/dev/stdin', configPath],
-    { input: Buffer.from('private configuration') },
-  );
+  expect(exec.exec).toHaveBeenCalledWith('sudo', [
+    'install',
+    '--mode=600',
+    '/dev/null',
+    configPath,
+  ]);
+  expect(exec.exec).toHaveBeenCalledWith('sudo', ['dd', `of=${configPath}`, 'status=none'], {
+    input: Buffer.from('private configuration'),
+  });
   expect(exec.exec).toHaveBeenCalledWith('sudo', [
     'shred',
     '--iterations=0',
