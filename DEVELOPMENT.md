@@ -37,9 +37,14 @@ from running another package manager.
 | `pnpm run setup-hooks` | Configure the local Git pre-commit hook.              |
 
 Unit tests mock platform commands and filesystem operations. CI runs lint,
-unit tests, and builds on Node.js 24 and 26, audits production dependencies,
-and runs CodeQL analysis. On release tag pushes, CI also verifies that the
-committed bundles match a fresh build.
+unit tests, and builds on Node.js 24 and 26, and audits production dependencies.
+On release tag pushes, CI also verifies that the committed bundles match a
+fresh build.
+
+GitHub-managed CodeQL default setup separately scans the default branch and
+eligible pull requests, and runs scheduled scans. It does not scan pull
+requests from forks, nor does the release workflow trigger a new scan. Check
+the default-branch scan and its alerts before preparing a release.
 
 CI runs on pushes to `main` and `v*` tags, and when pull requests targeting
 `main` are opened, updated, or reopened. Integration tests run automatically
@@ -109,7 +114,9 @@ coverage, and cleanup have been validated.
 To publish the MVP:
 
 1. Merge the release preparation changes into `main` and confirm its checks
-   pass. Complete a security review before production use.
+   pass. Verify the GitHub-managed CodeQL scan succeeded for that exact commit
+   and review its alerts; the release workflow does not enforce this check.
+   Complete a security review before production use.
 2. Run **Prepare release tag** from `main`, specifying `v0.1.0`. The workflow
    runs checks, tests the generated bundles against a disposable peer, and
    pushes a tag pointing to a separate commit containing those bundles. It

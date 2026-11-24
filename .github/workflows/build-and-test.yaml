@@ -68,41 +68,20 @@ jobs:
       - name: Check both release bundles are tracked
         if: >-
           github.event_name == 'push' && github.ref_type == 'tag' &&
-          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)
+          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
         run: git ls-files --error-unmatch dist/main/index.js dist/post/index.js
 
       - name: Check release bundles match the build
         if: >-
           github.event_name == 'push' && github.ref_type == 'tag' &&
-          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)
+          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
         run: git diff --exit-code -- dist
-
-  codeql:
-    name: CodeQL security analysis
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-      - name: Check out the tested revision
-        uses: actions/checkout@v7
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          persist-credentials: false
-      - name: Initialise CodeQL
-        uses: github/codeql-action/init@v4
-        with:
-          languages: javascript-typescript
-      - name: Analyse
-        uses: github/codeql-action/analyze@v4 # cspell:disable-line
 
   integration-pr:
     name: Integration tests (${{ matrix.scenario }})
     if: >-
       github.event_name == 'pull_request' &&
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)
+      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
     environment: integration-approval
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -128,7 +107,7 @@ jobs:
     name: Integration tests (${{ matrix.scenario }})
     if: >-
       (github.event_name == 'push' &&
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)) ||
+      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)) ||
       inputs.run_integration_tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -146,7 +125,7 @@ jobs:
       - name: Build integration bundles
         if: >-
           ${{ !(github.event_name == 'push' && github.ref_type == 'tag' &&
-          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)) }}
+          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)) }}
         uses: ./.github/actions/build-bundles
       - name: Run integration scenario
         uses: ./.github/actions/integration-test
@@ -157,7 +136,7 @@ jobs:
     name: Integration gate
     if: >-
       always() && github.event_name == 'pull_request' &&
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)
+      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
     needs: integration-pr
     runs-on: ubuntu-latest
     steps:

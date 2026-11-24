@@ -22,9 +22,10 @@ The implementation is expected to:
 Unit tests mock system operations; integration tests exercise tunnel, DNS, and
 cleanup against a disposable peer. Neither is a security certification.
 
-CI also audits production dependencies and runs CodeQL analysis. GitHub secret
-scanning and push protection are enabled for the repository. These checks do
-not detect every vulnerability or replace an independent security review.
+CI also audits production dependencies. GitHub-managed CodeQL scans the
+default branch and eligible pull requests; GitHub secret scanning and push
+protection are enabled for the repository. These checks do not detect every
+vulnerability or replace an independent security review.
 
 ## 📦 Dependency Installation
 
