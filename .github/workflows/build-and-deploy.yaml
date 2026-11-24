@@ -71,6 +71,27 @@ jobs:
       - name: Check committed bundle
         run: git diff --exit-code -- dist
 
+  codeql:
+    name: CodeQL security analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Check out the tested revision
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          persist-credentials: false
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+      - name: Analyse
+        uses: github/codeql-action/analyze@v4 # cspell:disable-line
+
   integration-pr:
     name: Integration tests (${{ matrix.scenario }})
     if: >-

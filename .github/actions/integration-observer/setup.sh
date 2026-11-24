@@ -30,6 +30,7 @@ server_public=$(cat "$directory/server.pub")
 printf '::add-mask::%s\n' "$client_private"
 printf 'private-key=%s\npublic-key=%s\n' "$client_private" "$server_public" >> "$GITHUB_OUTPUT"
 
+echo "Configuring isolated WireGuard peer."
 sudo ip netns add wgc-peer
 sudo ip link add wgc-host type veth peer name wgc-remote
 sudo ip link set wgc-remote netns wgc-peer
@@ -44,8 +45,10 @@ sudo ip netns exec wgc-peer wg set wgcpeer private-key "$directory/server.key" \
   listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
 sudo ip -n wgc-peer link set wgcpeer up
 
+echo "Starting isolated DNS and HTTP services."
 sudo ip netns exec wgc-peer dnsmasq --no-hosts --no-resolv --bind-interfaces \
-  --listen-address=10.99.0.1 --address=/service.internal.test/10.99.0.1 \
+  --user=root --group=root --listen-address=10.99.0.1 \
+  --address=/service.internal.test/10.99.0.1 \
   --pid-file="$directory/dnsmasq.pid"
 sudo ip netns exec wgc-peer env SERVICE_PID_FILE="$directory/service.pid" \
   node "$GITHUB_WORKSPACE/.github/actions/integration-observer/service.cjs" &
