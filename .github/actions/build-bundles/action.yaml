@@ -1,0 +1,20 @@
+name: Build action bundles
+description: Build the action for local integration testing.
+runs:
+  using: composite
+  steps:
+    - name: Set up pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        version: 12.21.0
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        cache: pnpm
+    - name: Install dependencies
+      shell: sh
+      run: pnpm install --frozen-lockfile
+    - name: Build bundles
+      shell: sh
+      run: pnpm run build

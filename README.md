@@ -63,8 +63,8 @@ jobs:
 ```
 
 This version is intended only for trials and is not a supported production
-release. Unlike `@main`, the version tag identifies the intended release;
-maintainers must not move or reuse it.
+release. Use a published version tag: `@main` does not contain the compiled
+action and cannot be used directly. Maintainers must not move or reuse tags.
 
 ### 📥 Inputs and Output
 
@@ -95,8 +95,9 @@ best-effort and cannot run if the runner terminates unexpectedly.
 
 ### 🛠️ Testing a Checkout
 
-To try a checked-out copy of this action instead, use `actions/checkout@v7`
-followed by `uses: ./` with the same inputs.
+For local development, build a checked-out copy with `pnpm install` and
+`pnpm run build` before using `uses: ./` with the same inputs. This is not a
+substitute for a published release tag in consuming repositories.
 
 ## 🧰 Development
 

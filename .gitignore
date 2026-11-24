@@ -1,7 +1,8 @@
 # Dependencies
 node_modules/
 
-# Build & test artefacts (NOTE: dist/ MUST NOT be ignored for GitHub Actions)
+# Build & test artefacts
+dist/
 coverage/
 *.tsbuildinfo
 .nyc_output/

@@ -32,7 +32,7 @@ end of the job.
 - User-controlled values must be validated and passed to commands as separate
   arguments, not interpolated into shell strings.
 - Teardown must attempt all independent cleanup steps and report failures.
-- Bundled action output must remain synchronised with its TypeScript source.
+- Release bundles must remain synchronised with their TypeScript source.
 - Documentation must distinguish verified behaviour from planned behaviour.
 
 ## 🚫 Out of Scope

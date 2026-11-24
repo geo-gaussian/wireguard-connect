@@ -15,4 +15,4 @@ remains unverified.
 
 - [ ] No secrets or credentials are included.
 - [ ] Relevant documentation is up to date.
-- [ ] `dist/` is synchronised when source files change.
+- [ ] The action builds successfully when source files change.

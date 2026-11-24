@@ -26,7 +26,7 @@ pnpm test
 pnpm run build
 ```
 
-Changes to `src/` must include the updated bundle in `dist/`. Keep tests and
+Build changes to `src/` locally; release tags contain the bundles. Keep tests and
 documentation in step with the behaviour they describe.
 
 ## 🧪 Tests and Platform Claims

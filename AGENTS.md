@@ -59,7 +59,7 @@ When implementing tunnel support:
 - Add unit tests for every new platform command or validation rule, mocking
   `@actions/exec` and filesystem operations as appropriate.
 - Run `pnpm run lint`, `pnpm test`, and `pnpm run build` for code changes.
-- Keep committed `dist/` output synchronised with the TypeScript source.
+- Keep release-tag `dist/` output synchronised with the TypeScript source.
 - Do not claim real-runner integration coverage based on mocked unit tests.
 
 ## 📝 Documentation

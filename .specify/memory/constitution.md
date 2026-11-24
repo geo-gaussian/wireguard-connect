@@ -29,9 +29,9 @@ silently converting them into apparent success.
 
 ### 📚 V. Keep Source, Bundles, and Documentation Consistent
 
-GitHub Actions executes committed files from `dist/`; source changes require
-rebundling. Documentation must reflect the current implementation and identify
-unverified behaviour.
+GitHub Actions executes release-tag files from `dist/`; source changes require
+rebundling for testing and releases. Documentation must reflect the current
+implementation and identify unverified behaviour.
 
 ## 🧰 Technical Constraints
 
@@ -46,8 +46,8 @@ unverified behaviour.
 
 Use Spec Kit for substantial feature work: specify behaviour, review the plan,
 generate tasks, implement, and validate. Run `pnpm run lint`, `pnpm test`, and
-`pnpm run build` before submitting code changes. Update generated bundles and
-related documentation in the same change.
+`pnpm run build` before submitting code changes. Update related documentation
+in the same change; release preparation generates and commits the bundles.
 
 ## ⚖️ Governance
 

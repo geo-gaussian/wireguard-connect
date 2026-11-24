@@ -1,0 +1,97 @@
+name: Prepare release tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release version tag, for example v0.1.0
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: ./.github/workflows/build-and-deploy.yaml
+    with:
+      run_integration_tests: false
+
+  build:
+    name: Build release bundles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Validate release request
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: sh scripts/validate-release.sh
+      - name: Build bundles
+        uses: ./.github/actions/build-bundles
+      - name: Check both bundles exist
+        run: test -s dist/main/index.js && test -s dist/post/index.js
+      - name: Save release bundles
+        uses: actions/upload-artifact@v7 # cspell:disable-line
+        with:
+          name: release-bundles
+          path: |
+            dist/main/index.js
+            dist/post/index.js
+          if-no-files-found: error
+          retention-days: 1
+
+  integration:
+    name: Test release bundles (${{ matrix.scenario }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [success, failure]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Download release bundles
+        uses: actions/download-artifact@v8 # cspell:disable-line
+        with:
+          name: release-bundles
+          path: dist
+      - name: Run integration scenario
+        uses: ./.github/actions/integration-test
+        with:
+          scenario: ${{ matrix.scenario }}
+
+  tag:
+    name: Create release tag
+    needs: [checks, build, integration]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: true
+      - name: Download tested bundles
+        uses: actions/download-artifact@v8 # cspell:disable-line
+        with:
+          name: release-bundles
+          path: dist
+      - name: Create and push release tag
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: sh scripts/publish-release.sh

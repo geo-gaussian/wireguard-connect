@@ -37,8 +37,9 @@ from running another package manager.
 | `pnpm run setup-hooks` | Configure the local Git pre-commit hook.              |
 
 Unit tests mock platform commands and filesystem operations. CI runs lint,
-unit tests, and builds on Node.js 24 and 26, checks the committed bundles,
-audits production dependencies, and runs CodeQL analysis.
+unit tests, and builds on Node.js 24 and 26, audits production dependencies,
+and runs CodeQL analysis. On release tag pushes, CI also verifies that the
+committed bundles match a fresh build.
 
 CI runs on pushes to `main` and `v*` tags, and when pull requests targeting
 `main` are opened, updated, or reopened. Integration tests run automatically
@@ -60,11 +61,12 @@ than the latest development runtime.
 
 ## 📦 Bundling
 
-GitHub Actions runs the compiled Node.js bundles in `dist/`. After changing
-the TypeScript in `src/`, run `pnpm run build` and include the corresponding
-generated bundle changes. CI checks that the build output is synchronised
-with the committed files. Node.js 24 and later run the repository's `.mts`
-helper scripts directly using built-in TypeScript type stripping.
+GitHub Actions runs the compiled Node.js bundles in `dist/`. Source branches
+ignore this directory; run `pnpm run build` to generate it locally. Release
+tags point to separate commits containing tested bundles. Direct references
+to `@main` do not work without a local build. Node.js 24 and later run the
+repository's `.mts` helper scripts directly using built-in TypeScript type
+stripping.
 
 ## 🧪 Testing Expectations
 
@@ -106,21 +108,26 @@ coverage, and cleanup have been validated.
 
 To publish the MVP:
 
-1. Merge the release preparation changes into `main`. Confirm lint, tests,
-   builds, security checks, and integration tests pass in CI for the exact
-   commit to be released. Complete a security review before production use.
-2. From the repository's `action.yaml` on GitHub, select **Draft a release**.
-   Choose the verified commit as the target and create the `v0.1.0` tag.
-3. Mark the release as a pre-release and explain in its notes that the MVP is
+1. Merge the release preparation changes into `main` and confirm its checks
+   pass. Complete a security review before production use.
+2. Run **Prepare release tag** from `main`, specifying `v0.1.0`. The workflow
+   runs checks, tests the generated bundles against a disposable peer, and
+   pushes a tag pointing to a separate commit containing those bundles. It
+   refuses existing tags and checks that `main` has not changed before tagging.
+3. From the repository's `action.yaml` on GitHub, select **Draft a release**
+   and select the existing `v0.1.0` tag. Do not create a tag directly from
+   `main`: it would not contain the action bundles.
+4. Mark the release as a pre-release and explain in its notes that the MVP is
    experimental, targets GitHub-hosted Ubuntu, and has only runner-local
    integration coverage. Do not move or reuse the version tag.
-4. To list the action on GitHub Marketplace, select **Publish this Action to
+5. To list the action on GitHub Marketplace, select **Publish this Action to
    the GitHub Marketplace** and follow GitHub's prompts. The action name must
    be available, the repository owner must accept the Marketplace Developer
    Agreement, and the publisher must use two-factor authentication. See
    [GitHub's publishing guidance](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/publish-in-github-marketplace).
-5. Publish the release and check the `v0.1.0` tag workflow. A tag push runs
-   checks but does not itself publish a release or Marketplace listing.
+6. Publish the release. A tag created with `GITHUB_TOKEN` does not trigger
+   the tag workflow; the preparation workflow performs its own checks. The
+   tag itself does not publish a release or Marketplace listing.
 
 The package version tracks the intended release, but consumers use the Git
 tag, not the package version, to reference the action. The Marketplace name is

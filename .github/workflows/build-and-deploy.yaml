@@ -65,10 +65,16 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: Check both bundles are tracked
+      - name: Check both release bundles are tracked
+        if: >-
+          github.event_name == 'push' && github.ref_type == 'tag' &&
+          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)
         run: git ls-files --error-unmatch dist/main/index.js dist/post/index.js
 
-      - name: Check committed bundle
+      - name: Check release bundles match the build
+        if: >-
+          github.event_name == 'push' && github.ref_type == 'tag' &&
+          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)
         run: git diff --exit-code -- dist
 
   codeql:
@@ -111,6 +117,8 @@ jobs:
           repository: ${{ job.workflow_repository }}
           ref: ${{ job.workflow_sha }}
           persist-credentials: false
+      - name: Build integration bundles
+        uses: ./.github/actions/build-bundles
       - name: Run integration scenario
         uses: ./.github/actions/integration-test
         with:
@@ -135,6 +143,11 @@ jobs:
           repository: ${{ job.workflow_repository }}
           ref: ${{ job.workflow_sha }}
           persist-credentials: false
+      - name: Build integration bundles
+        if: >-
+          ${{ !(github.event_name == 'push' && github.ref_type == 'tag' &&
+          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-deploy.yaml@{0}', github.ref)) }}
+        uses: ./.github/actions/build-bundles
       - name: Run integration scenario
         uses: ./.github/actions/integration-test
         with:
