@@ -7,5 +7,5 @@ outputs:
     description: Ephemeral server public key.
 runs:
   using: node24
-  main: main.cjs
-  post: post.cjs
+  main: main.mts
+  post: post.mts

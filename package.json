@@ -9,14 +9,14 @@
     "pnpm": "12.21.0"
   },
   "scripts": {
-    "setup-hooks": "node scripts/install-hooks.cjs",
+    "setup-hooks": "node scripts/install-hooks.mts",
     "lint": "pnpm run lint:format && pnpm run lint:spelling && pnpm run lint:types",
-    "lint:format": "prettier --check \"**/*.{cjs,json,md,mjs,ts,yaml,yml}\"",
+    "lint:format": "prettier --check \"**/*.{cjs,json,md,mjs,mts,ts,yaml,yml}\"",
     "lint:spelling": "cspell --config cspell.config.yaml --no-progress \"**/*\"",
     "lint:types": "tsc --noEmit",
     "test": "jest --runInBand",
     "build": "ncc build src/main.ts --out dist/main && ncc build src/post.ts --out dist/post",
-    "format": "prettier --write \"**/*.{cjs,json,md,mjs,ts,yaml,yml}\""
+    "format": "prettier --write \"**/*.{cjs,json,md,mjs,mts,ts,yaml,yml}\""
   },
   "dependencies": {
     "@actions/core": "2.0.3",

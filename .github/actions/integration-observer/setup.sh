@@ -54,7 +54,7 @@ sudo ip netns exec wgc-peer dnsmasq --no-hosts --no-resolv --bind-interfaces \
   --address=/service.internal.test/10.99.0.1 \
   --pid-file="$directory/dnsmasq.pid"
 sudo ip netns exec wgc-peer env SERVICE_PID_FILE="$directory/service.pid" \
-  node "$GITHUB_WORKSPACE/.github/actions/integration-observer/service.cjs" &
+  node "$GITHUB_WORKSPACE/.github/actions/integration-observer/service.mts" &
 
 attempt=0
 while [ ! -s "$directory/service.pid" ]; do

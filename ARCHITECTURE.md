@@ -35,7 +35,7 @@ before secrets are written, and overwritten and removed during teardown.
 | `src/post.ts`    | Revert DNS and tear down the tunnel             | Best-effort cleanup              |
 | `src/config.ts`  | Parse inputs and render WireGuard configuration | Implemented                      |
 | `src/platforms/` | Isolate operating-system operations             | Linux MVP; other platforms empty |
-| `dist/`          | Bundled JavaScript consumed by GitHub Actions   | Main and post bundles            |
+| `dist/`          | Compiled Node.js action bundles                 | Main and post bundles            |
 
 ## 🖥️ Platform Strategy
 

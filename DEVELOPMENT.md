@@ -60,10 +60,11 @@ than the latest development runtime.
 
 ## 📦 Bundling
 
-GitHub Actions executes the committed JavaScript in `dist/` directly. After
-changing `src/`, run `pnpm run build` and include the corresponding generated
-bundle changes. CI checks that the build output is synchronised with the
-committed files.
+GitHub Actions runs the compiled Node.js bundles in `dist/`. After changing
+the TypeScript in `src/`, run `pnpm run build` and include the corresponding
+generated bundle changes. CI checks that the build output is synchronised
+with the committed files. Node.js 24 and later run the repository's `.mts`
+helper scripts directly using built-in TypeScript type stripping.
 
 ## 🧪 Testing Expectations
 

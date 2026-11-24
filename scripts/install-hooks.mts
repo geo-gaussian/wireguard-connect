@@ -1,6 +1,6 @@
-const { execFileSync } = require('node:child_process');
-const { chmodSync } = require('node:fs');
-const { join } = require('node:path');
+import { execFileSync } from 'node:child_process';
+import { chmodSync } from 'node:fs';
+import { join } from 'node:path';
 
 const root = execFileSync('git', ['rev-parse', '--show-toplevel'], {
   encoding: 'utf8',
