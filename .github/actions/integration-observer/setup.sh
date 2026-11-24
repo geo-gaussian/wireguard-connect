@@ -45,8 +45,14 @@ sudo ip -n wgc-peer link set wgc-remote up
 sudo ip -n wgc-peer link set lo up
 sudo ip -n wgc-peer link add wgcpeer type wireguard
 sudo ip -n wgc-peer addr add 10.99.0.1/24 dev wgcpeer
-sudo ip netns exec wgc-peer wg set wgcpeer private-key "$peer_directory/server.key" \
-  listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
+sudo ip netns exec wgc-peer which wg
+sudo getcap /usr/bin/wg
+if ! sudo ip netns exec wgc-peer strace -f -e trace=openat,execve,setuid,setresuid,capset \
+  wg set wgcpeer private-key "$peer_directory/server.key" \
+  listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32; then
+  sudo dmesg | grep -i 'AppArmor.*denied' || echo "No AppArmor denials reported."
+  exit 1
+fi
 sudo ip -n wgc-peer link set wgcpeer up
 
 echo "Starting isolated DNS and HTTP services."
