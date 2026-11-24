@@ -44,8 +44,11 @@ sudo ip -n wgc-peer link add wgcpeer type wireguard
 echo "Created peer interface."
 sudo ip -n wgc-peer addr add 10.99.0.1/24 dev wgcpeer
 echo "Applying peer keys."
-cat "$directory/server.key" | sudo ip netns exec wgc-peer wg set wgcpeer \
-  private-key /dev/stdin listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
+sudo ip netns exec wgc-peer id
+sudo ip netns exec wgc-peer cat /proc/self/attr/current
+sudo ip netns exec wgc-peer cat "$directory/server.key" > /dev/null
+sudo ip netns exec wgc-peer wg set wgcpeer private-key "$directory/server.key" \
+  listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
 sudo ip -n wgc-peer link set wgcpeer up
 
 echo "Starting isolated DNS and HTTP services."
