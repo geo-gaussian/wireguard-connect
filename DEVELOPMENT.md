@@ -47,6 +47,8 @@ on those pushes. For pull requests, they wait for approval in the
 either scenario does not pass. Maintainers can also run the workflow manually
 or call it as a reusable workflow with the Boolean `run_integration_tests`
 input. When that input is false, those runs skip integration tests.
+The workflow distinguishes direct runs from reusable calls using its
+repository and workflow path; update that comparison if either changes.
 
 Tag pushes do not publish a release or deploy the action. Tags pushed by a
 workflow using `GITHUB_TOKEN` generally do not trigger this workflow.

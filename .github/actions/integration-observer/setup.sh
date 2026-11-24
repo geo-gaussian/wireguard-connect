@@ -13,7 +13,8 @@ umask 077
 sudo apt-get update
 sudo apt-get install -y wireguard-tools dnsmasq-base
 sudo install -d -m 700 /etc/wireguard
-if [ -n "$(sudo find /etc/wireguard -maxdepth 1 -name 'wgc*.conf' -print)" ]; then
+configurations=$(sudo find /etc/wireguard -maxdepth 1 -name 'wgc*.conf' -print)
+if [ -n "$configurations" ]; then
   echo "An existing action configuration prevents isolation." >&2
   exit 1
 fi
