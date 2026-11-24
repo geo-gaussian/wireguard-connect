@@ -39,12 +39,12 @@ if ip link show dev wgc-host >/dev/null 2>&1; then
 fi
 if [ -f "$directory/peer-directory" ]; then
   peer_directory=$(cat "$directory/peer-directory")
-  suffix=${peer_directory#/tmp/wgc-peer.}
+  suffix=${peer_directory#/etc/wireguard/wgc-peer.}
   case "$peer_directory:$suffix" in
-    /tmp/wgc-peer.????????:*[!a-zA-Z0-9]* | /tmp/wgc-peer.????????:) 
+    /etc/wireguard/wgc-peer.????????:*[!a-zA-Z0-9]* | /etc/wireguard/wgc-peer.????????:)
       echo "Invalid peer directory." >&2
       failed=1 ;;
-    /tmp/wgc-peer.????????:*)
+    /etc/wireguard/wgc-peer.????????:*)
       sudo rm -f "$peer_directory/server.key" || failed=1
       sudo rmdir "$peer_directory" || failed=1 ;;
     *)
