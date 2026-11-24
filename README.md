@@ -1,5 +1,8 @@
 # 🔌 WireGuard Connect Action
 
+[![Build and test](https://github.com/geo-gaussian/wireguard-connect/actions/workflows/build-and-test.yaml/badge.svg?branch=main)](https://github.com/geo-gaussian/wireguard-connect/actions/workflows/build-and-test.yaml)
+[![Coverage](https://codecov.io/github/geo-gaussian/wireguard-connect/graph/badge.svg?branch=main)](https://app.codecov.io/github/geo-gaussian/wireguard-connect)
+
 > **Early development:** The Ubuntu MVP has limited runner-local integration
 > coverage. It is not production-ready.
 

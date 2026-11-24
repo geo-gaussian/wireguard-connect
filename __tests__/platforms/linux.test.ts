@@ -60,6 +60,14 @@ it('tolerates an already missing configuration during overwrite', async () => {
   expect(exec.exec).not.toHaveBeenCalled();
 });
 
+it('reports a failed configuration existence check without overwriting', async () => {
+  jest.mocked(exec.getExecOutput).mockResolvedValueOnce({ exitCode: 2, stdout: '', stderr: '' });
+  await expect(linux.overwriteConfig('/etc/wireguard/wgc12345678.conf')).rejects.toThrow(
+    'Failed to check the configuration file.',
+  );
+  expect(exec.exec).not.toHaveBeenCalled();
+});
+
 it('passes tunnel, DNS, and connectivity parameters as separate arguments', async () => {
   const config: TunnelConfig = {
     privateKey: '',

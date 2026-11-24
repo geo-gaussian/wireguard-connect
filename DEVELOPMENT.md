@@ -28,18 +28,29 @@ from running another package manager.
 
 ## 📋 Common Commands
 
-| Command                | Purpose                                               |
-| :--------------------- | :---------------------------------------------------- |
-| `pnpm run lint`        | Check formatting, spelling, and TypeScript types.     |
-| `pnpm test`            | Run the Jest tests.                                   |
-| `pnpm run build`       | Bundle the main and post actions into `dist/`.        |
-| `pnpm run format`      | Apply Prettier formatting to supported project files. |
-| `pnpm run setup-hooks` | Configure the local Git pre-commit hook.              |
+| Command                  | Purpose                                               |
+| :----------------------- | :---------------------------------------------------- |
+| `pnpm run lint`          | Check formatting, spelling, and TypeScript types.     |
+| `pnpm test`              | Run the Jest tests.                                   |
+| `pnpm run test:coverage` | Generate unit test coverage in `coverage/`.           |
+| `pnpm run build`         | Bundle the main and post actions into `dist/`.        |
+| `pnpm run format`        | Apply Prettier formatting to supported project files. |
+| `pnpm run setup-hooks`   | Configure the local Git pre-commit hook.              |
 
 Unit tests mock platform commands and filesystem operations. CI runs lint,
 unit tests, and builds on Node.js 24 and 26, and audits production dependencies.
 On release tag pushes, CI also verifies that the committed bundles match a
 fresh build.
+
+For direct pull requests and pushes to `main`, a separate Node.js 24 job
+reports unit test coverage for `src/` to Codecov. It does not report integration
+coverage. To enable uploads, install the [Codecov GitHub app](https://github.com/apps/codecov)
+for this repository, activate it in Codecov, and disable token authentication
+for public repositories in the organisation's Codecov settings. This
+organisation-wide setting permits unauthenticated uploads, including forged
+reports. The coverage badge appears after the first successful upload to
+`main`; upload failures fail the coverage job, not the required lint, test,
+and build checks.
 
 GitHub-managed CodeQL default setup separately scans the default branch and
 eligible pull requests, and runs scheduled scans. It does not scan pull

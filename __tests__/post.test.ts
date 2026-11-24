@@ -48,6 +48,31 @@ it('continues independent cleanup when DNS, tunnel, and overwrite operations fai
   );
 });
 
+it.each([new Error('cleanup failed'), 'cleanup failed'])(
+  'reports all cleanup failures, including configuration removal: %p',
+  async (error) => {
+    jest.mocked(linux.revertDns).mockRejectedValueOnce(error);
+    jest.mocked(linux.down).mockRejectedValueOnce(error);
+    jest.mocked(linux.overwriteConfig).mockRejectedValueOnce(error);
+    jest.mocked(linux.removeConfig).mockRejectedValueOnce(error);
+
+    await run();
+
+    expect(linux.revertDns).toHaveBeenCalledWith(state.interfaceName);
+    expect(linux.down).toHaveBeenCalledWith(state.configPath);
+    expect(linux.overwriteConfig).toHaveBeenCalledWith(state.configPath);
+    expect(linux.removeConfig).toHaveBeenCalledWith(state.configPath);
+    expect(core.setFailed).toHaveBeenCalledWith(
+      [
+        'Failed to revert DNS: cleanup failed',
+        'Failed to stop tunnel: cleanup failed',
+        'Failed to overwrite configuration: cleanup failed',
+        'Failed to remove configuration: cleanup failed',
+      ].join('\n'),
+    );
+  },
+);
+
 it('removes a partial configuration without stopping a tunnel that did not start', async () => {
   state.tunnelUp = '';
   state.dnsConfigured = '';

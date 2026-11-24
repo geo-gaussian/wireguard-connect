@@ -125,6 +125,24 @@ it('removes the empty configuration if recording its path fails', async () => {
   expect(core.setFailed).toHaveBeenCalledWith('state unavailable');
 });
 
+it.each([new Error('cleanup failed'), 'cleanup failed'])(
+  'reports a configuration cleanup failure without hiding the state error: %p',
+  async (cleanupError) => {
+    jest.mocked(core.saveState).mockImplementation((name) => {
+      if (name === 'configPath') throw new Error('state unavailable');
+    });
+    jest.mocked(linux.removeConfig).mockRejectedValueOnce(cleanupError);
+
+    await run();
+
+    expect(core.error).toHaveBeenCalledWith(
+      'Failed to remove empty configuration after saving state failed: cleanup failed',
+    );
+    expect(linux.writeConfig).not.toHaveBeenCalled();
+    expect(core.setFailed).toHaveBeenCalledWith('state unavailable');
+  },
+);
+
 it('records DNS cleanup before a partial DNS setup fails', async () => {
   jest.mocked(linux.configureDns).mockRejectedValueOnce(new Error('DNS setup failed'));
   await run();
@@ -140,4 +158,29 @@ it('tears down the tunnel immediately if recording its state fails', async () =>
   await run();
   expect(linux.down).toHaveBeenCalledTimes(1);
   expect(core.setFailed).toHaveBeenCalledWith('state unavailable');
+});
+
+it.each([new Error('cleanup failed'), 'cleanup failed'])(
+  'reports a tunnel cleanup failure without hiding the state error: %p',
+  async (cleanupError) => {
+    jest.mocked(core.saveState).mockImplementation((name) => {
+      if (name === 'tunnelUp') throw new Error('state unavailable');
+    });
+    jest.mocked(linux.down).mockRejectedValueOnce(cleanupError);
+
+    await run();
+
+    expect(core.error).toHaveBeenCalledWith(
+      'Failed to stop tunnel after saving state failed: cleanup failed',
+    );
+    expect(linux.configureDns).not.toHaveBeenCalled();
+    expect(core.setFailed).toHaveBeenCalledWith('state unavailable');
+  },
+);
+
+it('reports a non-Error setup failure', async () => {
+  jest.mocked(linux.ensureWireGuard).mockRejectedValueOnce('installation failed');
+  await run();
+  expect(core.setFailed).toHaveBeenCalledWith('installation failed');
+  expect(linux.createConfig).not.toHaveBeenCalled();
 });
