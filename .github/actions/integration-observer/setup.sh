@@ -50,6 +50,13 @@ sudo ip netns exec wgc-peer wg set wgcpeer private-key "$peer_directory/server.k
   listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
 sudo ip -n wgc-peer link set wgcpeer up
 
+printf '[Interface]\nPrivateKey = %s\nAddress = 10.99.0.2/32\n[Peer]\nPublicKey = %s\nEndpoint = 198.18.0.2:51820\nAllowedIPs = 10.99.0.0/24\n' "$client_private" "$server_public" > "$directory/probe.conf"
+sudo install -m 600 "$directory/probe.conf" "$peer_directory/probe.conf"
+rm "$directory/probe.conf"
+sudo wg-quick up "$peer_directory/probe.conf"
+sudo wg-quick down "$peer_directory/probe.conf"
+sudo rm "$peer_directory/probe.conf"
+
 echo "Starting isolated DNS and HTTP services."
 sudo ip netns exec wgc-peer dnsmasq --no-hosts --no-resolv --bind-interfaces \
   --user=root --group=root --listen-address=10.99.0.1 \

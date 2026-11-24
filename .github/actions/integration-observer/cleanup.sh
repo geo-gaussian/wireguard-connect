@@ -23,7 +23,7 @@ fi
 
 for pid_file in "$directory/service.pid" "$directory/dnsmasq.pid"; do
   if [ -f "$pid_file" ]; then
-    pid=$(cat "$pid_file")
+    pid=$(sudo cat "$pid_file") || failed=1
     case "$pid" in
       '' | *[!0-9]*) echo "Invalid test service PID." >&2; failed=1 ;;
       *) sudo kill "$pid" || failed=1 ;;
@@ -45,7 +45,7 @@ if [ -f "$directory/peer-directory" ]; then
       echo "Invalid peer directory." >&2
       failed=1 ;;
     /etc/wireguard/wgc-peer.????????:*)
-      sudo rm -f "$peer_directory/server.key" || failed=1
+      sudo rm -f "$peer_directory/server.key" "$peer_directory/probe.conf" || failed=1
       sudo rmdir "$peer_directory" || failed=1 ;;
     *)
       echo "Invalid peer directory." >&2
@@ -55,7 +55,7 @@ fi
 if [ -d "$directory" ]; then
   rm -f "$directory/client.key" "$directory/server.key" "$directory/client.pub" \
     "$directory/server.pub" "$directory/service.pid" "$directory/dnsmasq.pid" \
-    "$directory/peer-directory" || failed=1
+    "$directory/peer-directory" "$directory/probe.conf" || failed=1
   rmdir "$directory" || failed=1
 fi
 exit "$failed"
