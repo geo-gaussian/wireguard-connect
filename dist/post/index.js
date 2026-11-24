@@ -31947,6 +31947,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ensureWireGuard = ensureWireGuard;
+exports.writeConfig = writeConfig;
+exports.overwriteConfig = overwriteConfig;
+exports.removeConfig = removeConfig;
 exports.up = up;
 exports.configureDns = configureDns;
 exports.verifyHost = verifyHost;
@@ -31963,6 +31966,26 @@ async function ensureWireGuard() {
         await io.which('wg', true);
         await io.which('wg-quick', true);
     }
+}
+async function writeConfig(configPath, contents) {
+    await exec.exec('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
+    await exec.exec('sudo', ['install', '-m', '600', '/dev/stdin', configPath], {
+        input: Buffer.from(contents),
+    });
+}
+async function overwriteConfig(configPath) {
+    const result = await exec.getExecOutput('sudo', ['test', '-e', configPath], {
+        ignoreReturnCode: true,
+        silent: true,
+    });
+    if (result.exitCode === 1)
+        return;
+    if (result.exitCode !== 0)
+        throw new Error('Failed to check the configuration file.');
+    await exec.exec('sudo', ['shred', '--iterations=0', '--zero', '--', configPath]);
+}
+async function removeConfig(configPath) {
+    await exec.exec('sudo', ['rm', '-f', '--', configPath]);
 }
 async function up(configPath) {
     await exec.exec('sudo', ['wg-quick', 'up', configPath]);
@@ -32031,16 +32054,12 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = run;
 const core = __importStar(__nccwpck_require__(2701));
-const fs = __importStar(__nccwpck_require__(3024));
-const path = __importStar(__nccwpck_require__(6760));
 const linux = __importStar(__nccwpck_require__(1107));
-function isMissing(error) {
-    return error instanceof Error && 'code' in error && error.code === 'ENOENT';
-}
 async function run() {
     const configPath = core.getState('configPath');
     const interfaceName = core.getState('interfaceName');
     const errors = [];
+    const validConfigPath = /^\/etc\/wireguard\/wgc[0-9a-f]{8}\.conf$/.test(configPath);
     if (core.getState('dnsConfigured') === 'true') {
         try {
             await linux.revertDns(interfaceName);
@@ -32049,7 +32068,7 @@ async function run() {
             errors.push(`Failed to revert DNS: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
-    if (core.getState('tunnelUp') === 'true') {
+    if (core.getState('tunnelUp') === 'true' && validConfigPath) {
         try {
             await linux.down(configPath);
         }
@@ -32058,33 +32077,22 @@ async function run() {
         }
     }
     if (configPath) {
-        try {
-            const file = fs.openSync(configPath, 'r+');
-            try {
-                fs.writeFileSync(file, Buffer.alloc(fs.fstatSync(file).size));
-            }
-            finally {
-                fs.closeSync(file);
-            }
+        if (!validConfigPath) {
+            errors.push('Invalid configuration path in cleanup state.');
         }
-        catch (error) {
-            if (!isMissing(error)) {
+        else {
+            try {
+                await linux.overwriteConfig(configPath);
+            }
+            catch (error) {
                 errors.push(`Failed to overwrite configuration: ${error instanceof Error ? error.message : String(error)}`);
             }
-        }
-        try {
-            fs.unlinkSync(configPath);
-        }
-        catch (error) {
-            if (!isMissing(error)) {
+            try {
+                await linux.removeConfig(configPath);
+            }
+            catch (error) {
                 errors.push(`Failed to remove configuration: ${error instanceof Error ? error.message : String(error)}`);
             }
-        }
-        try {
-            fs.rmdirSync(path.dirname(configPath));
-        }
-        catch (error) {
-            errors.push(`Failed to remove configuration directory: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
     if (errors.length) {
@@ -32224,14 +32232,6 @@ module.exports = require("node:events");
 
 /***/ }),
 
-/***/ 3024:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:fs");
-
-/***/ }),
-
 /***/ 7067:
 /***/ ((module) => {
 
@@ -32253,14 +32253,6 @@ module.exports = require("node:http2");
 
 "use strict";
 module.exports = require("node:net");
-
-/***/ }),
-
-/***/ 6760:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:path");
 
 /***/ }),
 

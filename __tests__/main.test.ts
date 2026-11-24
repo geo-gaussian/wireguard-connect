@@ -14,6 +14,7 @@ jest.mock('@actions/core', () => ({
 jest.mock('node:fs');
 jest.mock('../src/platforms/linux', () => ({
   ensureWireGuard: jest.fn(),
+  writeConfig: jest.fn(),
   up: jest.fn(),
   down: jest.fn(),
   configureDns: jest.fn(),
@@ -42,7 +43,6 @@ beforeEach(() => {
   };
   jest.mocked(core.getInput).mockImplementation((name) => inputs[name] ?? '');
   jest.mocked(fs.readFileSync).mockReturnValue('ID=ubuntu\n');
-  jest.mocked(fs.mkdtempSync).mockReturnValue('/tmp/wireguard-connect-test');
 });
 
 afterAll(() => {
@@ -56,10 +56,9 @@ it('saves cleanup state, creates a restricted file, and configures optional feat
 
   expect(core.setSecret).toHaveBeenCalledWith(privateKey);
   expect(linux.ensureWireGuard).toHaveBeenCalledTimes(1);
-  expect(fs.writeFileSync).toHaveBeenCalledWith(
-    expect.stringMatching(/^\/tmp\/wireguard-connect-test\/wgc[0-9a-f]{8}\.conf$/),
+  expect(linux.writeConfig).toHaveBeenCalledWith(
+    expect.stringMatching(/^\/etc\/wireguard\/wgc[0-9a-f]{8}\.conf$/),
     expect.stringContaining(`PrivateKey = ${privateKey}`),
-    { flag: 'wx', mode: 0o600 },
   );
   expect(core.saveState).toHaveBeenCalledWith('tunnelUp', 'true');
   expect(core.saveState).toHaveBeenCalledWith('dnsConfigured', 'true');

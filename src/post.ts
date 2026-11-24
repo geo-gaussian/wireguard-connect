@@ -1,16 +1,11 @@
 import * as core from '@actions/core';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import * as linux from './platforms/linux';
-
-function isMissing(error: unknown): boolean {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT';
-}
 
 export async function run(): Promise<void> {
   const configPath = core.getState('configPath');
   const interfaceName = core.getState('interfaceName');
   const errors: string[] = [];
+  const validConfigPath = /^\/etc\/wireguard\/wgc[0-9a-f]{8}\.conf$/.test(configPath);
 
   if (core.getState('dnsConfigured') === 'true') {
     try {
@@ -21,7 +16,7 @@ export async function run(): Promise<void> {
       );
     }
   }
-  if (core.getState('tunnelUp') === 'true') {
+  if (core.getState('tunnelUp') === 'true' && validConfigPath) {
     try {
       await linux.down(configPath);
     } catch (error) {
@@ -31,35 +26,23 @@ export async function run(): Promise<void> {
     }
   }
   if (configPath) {
-    try {
-      const file = fs.openSync(configPath, 'r+');
+    if (!validConfigPath) {
+      errors.push('Invalid configuration path in cleanup state.');
+    } else {
       try {
-        fs.writeFileSync(file, Buffer.alloc(fs.fstatSync(file).size));
-      } finally {
-        fs.closeSync(file);
-      }
-    } catch (error) {
-      if (!isMissing(error)) {
+        await linux.overwriteConfig(configPath);
+      } catch (error) {
         errors.push(
           `Failed to overwrite configuration: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
-    }
-    try {
-      fs.unlinkSync(configPath);
-    } catch (error) {
-      if (!isMissing(error)) {
+      try {
+        await linux.removeConfig(configPath);
+      } catch (error) {
         errors.push(
           `Failed to remove configuration: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
-    }
-    try {
-      fs.rmdirSync(path.dirname(configPath));
-    } catch (error) {
-      errors.push(
-        `Failed to remove configuration directory: ${error instanceof Error ? error.message : String(error)}`,
-      );
     }
   }
   if (errors.length) {

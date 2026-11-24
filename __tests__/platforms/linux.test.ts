@@ -25,6 +25,34 @@ it('installs and verifies the tools if they are missing', async () => {
   expect(io.which).toHaveBeenCalledWith('wg-quick', true);
 });
 
+it('creates and removes a restricted configuration without exposing its contents in arguments', async () => {
+  const configPath = '/etc/wireguard/wgc12345678.conf';
+  jest.mocked(exec.getExecOutput).mockResolvedValueOnce({ exitCode: 0, stdout: '', stderr: '' });
+  await linux.writeConfig(configPath, 'private configuration');
+  await linux.overwriteConfig(configPath);
+  await linux.removeConfig(configPath);
+  expect(exec.exec).toHaveBeenCalledWith('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
+  expect(exec.exec).toHaveBeenCalledWith(
+    'sudo',
+    ['install', '-m', '600', '/dev/stdin', configPath],
+    { input: Buffer.from('private configuration') },
+  );
+  expect(exec.exec).toHaveBeenCalledWith('sudo', [
+    'shred',
+    '--iterations=0',
+    '--zero',
+    '--',
+    configPath,
+  ]);
+  expect(exec.exec).toHaveBeenCalledWith('sudo', ['rm', '-f', '--', configPath]);
+});
+
+it('tolerates an already missing configuration during overwrite', async () => {
+  jest.mocked(exec.getExecOutput).mockResolvedValueOnce({ exitCode: 1, stdout: '', stderr: '' });
+  await linux.overwriteConfig('/etc/wireguard/wgc12345678.conf');
+  expect(exec.exec).not.toHaveBeenCalled();
+});
+
 it('passes tunnel, DNS, and connectivity parameters as separate arguments', async () => {
   const config: TunnelConfig = {
     privateKey: '',

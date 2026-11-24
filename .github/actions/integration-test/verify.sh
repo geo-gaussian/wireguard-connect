@@ -7,14 +7,13 @@ case "$SCENARIO:$TUNNEL_OUTCOME" in
 esac
 
 count=0
-for config in "${TMPDIR:-/tmp}"/wireguard-connect-*/wgc*.conf; do
-  if [ -f "$config" ]; then
-    count=$((count + 1))
-    interface=$(basename "$config" .conf)
-    if [ "$(stat -c %a "$config")" != 600 ]; then
-      echo "The action configuration does not have mode 0600." >&2
-      exit 1
-    fi
+configurations=$(sudo find /etc/wireguard -maxdepth 1 -type f -name 'wgc*.conf' -print)
+for config in $configurations; do
+  count=$((count + 1))
+  interface=$(basename "$config" .conf)
+  if [ "$(sudo stat -c %a "$config")" != 600 ]; then
+    echo "The action configuration does not have mode 0600." >&2
+    exit 1
   fi
 done
 if [ "$count" -ne 1 ]; then

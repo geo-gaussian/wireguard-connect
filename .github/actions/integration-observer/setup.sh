@@ -10,15 +10,13 @@ directory="${RUNNER_TEMP:?}/wireguard-integration"
 mkdir -m 700 "$directory"
 umask 077
 
-for action_directory in "${TMPDIR:-/tmp}"/wireguard-connect-*; do
-  if [ -e "$action_directory" ]; then
-    echo "An existing action directory prevents isolation." >&2
-    exit 1
-  fi
-done
-
 sudo apt-get update
 sudo apt-get install -y wireguard-tools dnsmasq-base
+sudo install -d -m 700 /etc/wireguard
+if [ -n "$(sudo find /etc/wireguard -maxdepth 1 -name 'wgc*.conf' -print)" ]; then
+  echo "An existing action configuration prevents isolation." >&2
+  exit 1
+fi
 
 wg genkey > "$directory/client.key"
 wg genkey > "$directory/server.key"
@@ -30,7 +28,6 @@ server_public=$(cat "$directory/server.pub")
 printf '::add-mask::%s\n' "$client_private"
 printf 'private-key=%s\npublic-key=%s\n' "$client_private" "$server_public" >> "$GITHUB_OUTPUT"
 
-sudo install -d -m 700 /etc/wireguard
 peer_directory=$(sudo mktemp -d /etc/wireguard/wgc-peer.XXXXXXXX)
 printf '%s\n' "$peer_directory" > "$directory/peer-directory"
 sudo install -m 600 "$directory/server.key" "$peer_directory/server.key"
@@ -49,12 +46,6 @@ sudo ip -n wgc-peer addr add 10.99.0.1/24 dev wgcpeer
 sudo ip netns exec wgc-peer wg set wgcpeer private-key "$peer_directory/server.key" \
   listen-port 51820 peer "$client_public" allowed-ips 10.99.0.2/32
 sudo ip -n wgc-peer link set wgcpeer up
-
-printf '[Interface]\nPrivateKey = %s\nAddress = 10.99.0.2/32\n[Peer]\nPublicKey = %s\nEndpoint = 198.18.0.2:51820\nAllowedIPs = 10.99.0.0/24\n' "$client_private" "$server_public" |
-  sudo install -m 600 /dev/stdin "$peer_directory/probe.conf"
-sudo wg-quick up "$peer_directory/probe.conf"
-sudo wg-quick down "$peer_directory/probe.conf"
-sudo rm "$peer_directory/probe.conf"
 
 echo "Starting isolated DNS and HTTP services."
 sudo ip netns exec wgc-peer dnsmasq --no-hosts --no-resolv --bind-interfaces \

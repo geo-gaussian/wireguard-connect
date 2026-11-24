@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
 import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
-import * as os from 'node:os';
 import * as path from 'node:path';
 import { readConfig, renderConfig } from './config';
 import * as linux from './platforms/linux';
@@ -19,11 +18,10 @@ export async function run(): Promise<void> {
 
     await linux.ensureWireGuard();
     const interfaceName = `wgc${randomBytes(4).toString('hex')}`;
-    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'wireguard-connect-'));
-    const configPath = path.join(directory, `${interfaceName}.conf`);
+    const configPath = path.join('/etc/wireguard', `${interfaceName}.conf`);
     core.saveState('configPath', configPath);
     core.saveState('interfaceName', interfaceName);
-    fs.writeFileSync(configPath, renderConfig(config), { flag: 'wx', mode: 0o600 });
+    await linux.writeConfig(configPath, renderConfig(config));
 
     await linux.up(configPath);
     try {

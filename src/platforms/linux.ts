@@ -13,6 +13,27 @@ export async function ensureWireGuard(): Promise<void> {
   }
 }
 
+export async function writeConfig(configPath: string, contents: string): Promise<void> {
+  await exec.exec('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
+  await exec.exec('sudo', ['install', '-m', '600', '/dev/stdin', configPath], {
+    input: Buffer.from(contents),
+  });
+}
+
+export async function overwriteConfig(configPath: string): Promise<void> {
+  const result = await exec.getExecOutput('sudo', ['test', '-e', configPath], {
+    ignoreReturnCode: true,
+    silent: true,
+  });
+  if (result.exitCode === 1) return;
+  if (result.exitCode !== 0) throw new Error('Failed to check the configuration file.');
+  await exec.exec('sudo', ['shred', '--iterations=0', '--zero', '--', configPath]);
+}
+
+export async function removeConfig(configPath: string): Promise<void> {
+  await exec.exec('sudo', ['rm', '-f', '--', configPath]);
+}
+
 export async function up(configPath: string): Promise<void> {
   await exec.exec('sudo', ['wg-quick', 'up', configPath]);
 }

@@ -4,12 +4,13 @@ set -u
 directory="${RUNNER_TEMP:?}/wireguard-integration"
 failed=0
 
-for action_directory in "${TMPDIR:-/tmp}"/wireguard-connect-*; do
-  if [ -e "$action_directory" ]; then
-    echo "The action did not remove its configuration directory." >&2
+if sudo test -d /etc/wireguard; then
+  configurations=$(sudo find /etc/wireguard -maxdepth 1 -name 'wgc*.conf' -print) || failed=1
+  if [ -n "$configurations" ]; then
+    echo "The action did not remove its configuration." >&2
     failed=1
   fi
-done
+fi
 links=$(ip -o link show) || failed=1
 if printf '%s\n' "$links" | grep -E '[[:space:]]wgc[0-9a-f]{8}:'; then
   echo "The action did not remove its interface." >&2
@@ -30,12 +31,12 @@ for pid_file in "$directory/service.pid" "$directory/dnsmasq.pid"; do
     esac
   fi
 done
+if ip link show dev wgc-host >/dev/null 2>&1; then
+  sudo ip link delete wgc-host || failed=1
+fi
 namespaces=$(sudo ip netns list) || failed=1
 if printf '%s\n' "$namespaces" | grep -q '^wgc-peer\( \|$\)'; then
   sudo ip netns delete wgc-peer || failed=1
-fi
-if ip link show dev wgc-host >/dev/null 2>&1; then
-  sudo ip link delete wgc-host || failed=1
 fi
 if [ -f "$directory/peer-directory" ]; then
   peer_directory=$(cat "$directory/peer-directory")
@@ -45,7 +46,7 @@ if [ -f "$directory/peer-directory" ]; then
       echo "Invalid peer directory." >&2
       failed=1 ;;
     /etc/wireguard/wgc-peer.????????:*)
-      sudo rm -f "$peer_directory/server.key" "$peer_directory/probe.conf" || failed=1
+      sudo rm -f "$peer_directory/server.key" || failed=1
       sudo rmdir "$peer_directory" || failed=1 ;;
     *)
       echo "Invalid peer directory." >&2
@@ -55,7 +56,7 @@ fi
 if [ -d "$directory" ]; then
   rm -f "$directory/client.key" "$directory/server.key" "$directory/client.pub" \
     "$directory/server.pub" "$directory/service.pid" "$directory/dnsmasq.pid" \
-    "$directory/peer-directory" "$directory/probe.conf" || failed=1
+    "$directory/peer-directory" || failed=1
   rmdir "$directory" || failed=1
 fi
 exit "$failed"
