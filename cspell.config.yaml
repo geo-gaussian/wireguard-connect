@@ -40,11 +40,11 @@ words:
   - TypeScript
   - WireGuard
   - cspell
+  - conv
   - dnsmasq
   - excl
   - netns
   - noproxy
-  - oflag
   - pnpm
   - prettier
   - resolv

@@ -31970,7 +31970,7 @@ async function ensureWireGuard() {
 }
 async function createConfig(configPath) {
     await exec.exec('sudo', ['install', '-d', '-m', '700', '/etc/wireguard']);
-    await exec.exec('sudo', ['dd', 'if=/dev/null', `of=${configPath}`, 'oflag=excl', 'status=none']);
+    await exec.exec('sudo', ['dd', 'if=/dev/null', `of=${configPath}`, 'conv=excl', 'status=none']);
 }
 async function writeConfig(configPath, contents) {
     await exec.exec('sudo', ['chmod', '600', '--', configPath]);

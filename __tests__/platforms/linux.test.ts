@@ -37,7 +37,7 @@ it('creates and removes a restricted configuration without exposing its contents
     'dd',
     'if=/dev/null',
     `of=${configPath}`,
-    'oflag=excl',
+    'conv=excl',
     'status=none',
   ]);
   expect(exec.exec).toHaveBeenCalledWith('sudo', ['chmod', '600', '--', configPath]);
