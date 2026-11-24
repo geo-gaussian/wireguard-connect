@@ -1,6 +1,9 @@
 name: Geo Gaussian WireGuard Connect
 description: 'Experimental: establish a temporary WireGuard tunnel on a GitHub-hosted Ubuntu runner.'
 author: Geo Gaussian Labs
+branding:
+  icon: shield
+  color: orange # cspell:disable-line
 inputs:
   private-key:
     description: Base64-encoded WireGuard client private key.
