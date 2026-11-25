@@ -6,10 +6,31 @@ if [ -z "${INTERFACE:-}" ] || [ -z "${PRIVATE_SERVICE_URL:-}" ]; then
   exit 1
 fi
 
-status=$(curl --fail --silent --show-error --noproxy '*' --proto '=http,https' \
+token=$(od -An -N16 -tx1 /dev/urandom | tr -d '[:space:]')
+case "$token" in
+  *[!0-9a-f]* | '') echo "Could not generate a log command token." >&2; exit 1 ;;
+esac
+if [ "${#token}" -ne 32 ]; then
+  echo "Could not generate a log command token." >&2
+  exit 1
+fi
+
+echo "Response body:"
+printf '::stop-commands::%s\n' "$token"
+# Keep untrusted response output between the command-disable markers on stdout.
+exec 3>&1
+curl_exit=0
+status=$(curl --silent --show-error --noproxy '*' --proto '=http,https' \
   --interface "$INTERFACE" --connect-timeout 10 --max-time 30 \
-  --output /dev/null --write-out '%{http_code}' -- "$PRIVATE_SERVICE_URL")
+  --output /dev/fd/3 --write-out '%{http_code}' -- "$PRIVATE_SERVICE_URL") || curl_exit=$?
+printf '\n::%s::\n' "$token"
+exec 3>&-
+if [ "$curl_exit" -ne 0 ]; then
+  echo "The private service request failed." >&2
+  exit 1
+fi
+printf 'HTTP status: %s\n' "$status"
 case "$status" in
-  2[0-9][0-9]) echo "The private service responded successfully through the tunnel." ;;
+  [23][0-9][0-9]) echo "The private service responded successfully through the tunnel." ;;
   *) echo "The private service did not return a successful HTTP status." >&2; exit 1 ;;
 esac

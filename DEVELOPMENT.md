@@ -152,8 +152,11 @@ Configure these environment variables:
 
 Use a dedicated peer with access restricted to the test service, and configure
 the server with its client public key and tunnel address. The service must
-return an HTTP 2xx response. If its URL uses private DNS, configure both DNS
-variables and ensure the DNS server is reachable through the permitted routes.
+return an HTTP 2xx or 3xx response; redirects are not followed. The test logs
+the status and response body, including for unsuccessful HTTP responses, so use
+a service that does not return sensitive information. If its URL uses private
+DNS, configure both DNS variables and ensure the DNS server is reachable
+through the permitted routes.
 Allow inbound WireGuard UDP traffic to the peer. Keep tunnel routes narrow:
 full-tunnel routing can disrupt the runner's connection to GitHub.
 

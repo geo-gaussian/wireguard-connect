@@ -2,6 +2,7 @@
 set -eu
 
 printf '%s\n' "$@" > "${CURL_ARGUMENTS_FILE:?}"
+printf '%s' "${CURL_RESPONSE_BODY:-}" >&3
 if [ "${CURL_EXIT_CODE:-0}" -ne 0 ]; then
   exit "$CURL_EXIT_CODE"
 fi

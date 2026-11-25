@@ -50,6 +50,7 @@ words:
   - prettier
   - resolv
   - SpecKit
+  - urandom
   - veth
   - wgcpeer
 
