@@ -20,9 +20,13 @@ printf '::stop-commands::%s\n' "$token"
 # Keep untrusted response output between the command-disable markers on stdout.
 exec 3>&1
 curl_exit=0
+# Send the body to the original stdout and capture the status and diagnostics.
 status=$(curl --silent --show-error --noproxy '*' --proto '=http,https' \
   --interface "$INTERFACE" --connect-timeout 10 --max-time 30 \
-  --output /dev/fd/3 --write-out '%{http_code}' -- "$PRIVATE_SERVICE_URL") || curl_exit=$?
+  --output - --write-out '%{stderr}%{http_code}' -- "$PRIVATE_SERVICE_URL" 2>&1 1>&3) || curl_exit=$?
+if [ "$curl_exit" -ne 0 ]; then
+  printf '\n%s\n' "$status"
+fi
 printf '\n::%s::\n' "$token"
 exec 3>&-
 if [ "$curl_exit" -ne 0 ]; then

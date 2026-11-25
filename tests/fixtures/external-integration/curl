@@ -2,8 +2,10 @@
 set -eu
 
 printf '%s\n' "$@" > "${CURL_ARGUMENTS_FILE:?}"
-printf '%s' "${CURL_RESPONSE_BODY:-}" >&3
+printf '%s' "${CURL_RESPONSE_BODY:-}"
 if [ "${CURL_EXIT_CODE:-0}" -ne 0 ]; then
+  printf '%s\n' "${CURL_ERROR_MESSAGE:-curl: test connection failed}" >&2
+  printf '000' >&2
   exit "$CURL_EXIT_CODE"
 fi
-printf '%s' "${CURL_HTTP_STATUS:-200}"
+printf '%s' "${CURL_HTTP_STATUS:-200}" >&2

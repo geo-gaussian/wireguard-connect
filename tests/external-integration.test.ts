@@ -42,7 +42,8 @@ describe('external service verification', () => {
     expect(args).toContain('--interface');
     expect(args[args.indexOf('--interface') + 1]).toBe('wgc12345678');
     expect(args[args.indexOf('--noproxy') + 1]).toBe('*');
-    expect(args[args.indexOf('--output') + 1]).toBe('/dev/fd/3');
+    expect(args[args.indexOf('--output') + 1]).toBe('-');
+    expect(args[args.indexOf('--write-out') + 1]).toBe('%{stderr}%{http_code}');
     expect(args).not.toContain('--location');
     expect(args.slice(-2)).toEqual(['--', 'http://service.internal.test/health']);
   });
@@ -78,12 +79,20 @@ describe('external service verification', () => {
   });
 
   it('fails when the request cannot connect', () => {
-    const result = verify({ CURL_EXIT_CODE: '7', CURL_RESPONSE_BODY: 'partial response' });
+    const result = verify({
+      CURL_EXIT_CODE: '7',
+      CURL_RESPONSE_BODY: 'partial response',
+      CURL_ERROR_MESSAGE: '::error::connection failed',
+    });
     const match = /::stop-commands::([0-9a-f]{32})\n/.exec(result.stdout);
     expect(result.status).not.toBe(0);
     expect(result.stderr).toContain('request failed');
     expect(match).not.toBeNull();
-    expect(result.stdout).toContain(`::${match?.[1]}::`);
+    const bodyIndex = result.stdout.indexOf('partial response');
+    const errorIndex = result.stdout.indexOf('::error::connection failed');
+    expect(bodyIndex).toBeGreaterThan(result.stdout.indexOf('::stop-commands::'));
+    expect(errorIndex).toBeGreaterThan(bodyIndex);
+    expect(result.stdout.indexOf(`::${match?.[1]}::`)).toBeGreaterThan(errorIndex);
   });
 
   const loopbackTest = process.platform === 'linux' || process.platform === 'darwin' ? it : it.skip;
@@ -125,6 +134,11 @@ describe('external service verification', () => {
         else expect(errors).toContain('did not return a successful HTTP status');
         expect(output).toContain('::error::response body');
         expect(output).toContain(`HTTP status: ${status}`);
+        const match = /::stop-commands::([0-9a-f]{32})\n/.exec(output);
+        expect(match).not.toBeNull();
+        const bodyIndex = output.indexOf('::error::response body');
+        expect(bodyIndex).toBeGreaterThan(output.indexOf('::stop-commands::'));
+        expect(output.indexOf(`::${match?.[1]}::`)).toBeGreaterThan(bodyIndex);
         expect(requests).toEqual(['/health']);
       } finally {
         await new Promise<void>((resolve, reject) => {
