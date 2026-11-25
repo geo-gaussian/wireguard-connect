@@ -56,5 +56,4 @@ certification.
 Unit tests cover input validation and platform command construction. Integration
 tests exercise privileged networking, DNS, and teardown against a peer isolated
 on the same GitHub-hosted Ubuntu runner. A manual external-peer test has passed
-on a development branch; the workflow is configured to run it on `main` once
-merged.
+on a development branch; the workflow also runs it on pushes to `main`.

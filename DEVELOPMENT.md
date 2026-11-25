@@ -50,11 +50,12 @@ lint, unit tests, and builds on Node.js 24, and audits production dependencies.
 Other development Node.js versions are not tested in CI. On release tag
 pushes, CI also verifies that the committed bundles match a fresh build.
 
-For direct pull requests and pushes to `main`, the Node.js 24 test run generates
-unit test coverage for `src/` without running the suite twice. The checks job
-uploads it to Codecov after the other checks pass; it does not report
-integration coverage. When the checks job runs for other events, it executes
-the tests without coverage. To enable uploads, install the
+For pull requests and pushes to `main`, including reusable calls where the
+checks job runs, the Node.js 24 test run generates unit test coverage for
+`src/` without running the suite twice. The checks job uploads it to Codecov
+after the other checks pass; it does not report integration coverage. When the
+checks job runs for other events, it executes the tests without coverage. To
+enable uploads, install the
 [Codecov GitHub app](https://github.com/apps/codecov)
 for this repository, activate it in Codecov, and disable token authentication
 for public repositories in the organisation's Codecov settings. This
@@ -77,14 +78,14 @@ requests, the `Integration gate` check fails if either scenario does not pass.
 GitHub's fork workflow approval settings may still require approval for some
 pull requests.
 
-Once this workflow is merged into `main` and the trusted repository is
-configured, the external peer test runs automatically on pushes to `main`.
-Maintainers can also run it manually on a trusted branch using the
-`run-external-integration-tests` input. The release workflow runs both
-runner-local scenarios and requests the external test against its built
-bundles. The workflow distinguishes direct runs from reusable calls using the
-caller repository and workflow path; update the comparisons if the workflow
-paths change.
+The external peer test runs automatically on pushes to `main`. Maintainers can
+also request it on a trusted branch using the `run-external-integration-tests`
+input, either manually or from a reusable workflow call. The test does not run
+for pull request refs or `pull_request_target` events. The release workflow
+runs both runner-local scenarios and requests the external test against its
+built bundles. Other checks distinguish direct runs from reusable calls using
+the caller repository and workflow path; update those comparisons if the
+workflow paths change.
 
 Tag pushes do not publish a release or deploy the action. Tags pushed by a
 workflow using `GITHUB_TOKEN` generally do not trigger this workflow.
@@ -135,17 +136,10 @@ and configuration files after the action's post step. It does not replace the
 runner-local scenarios or test DNS restoration. A terminated runner may not
 execute either post step.
 
-Before running it, set the repository-level Actions variable
-`TRUSTED_INTEGRATION_REPOSITORY` to the trusted repository's full
-`owner/repository` name. Do not set it as an environment variable: the
-workflow checks it before starting the environment job. Update it if the
-repository is renamed or transferred. If it is unset or does not match, the
-external test is skipped on pushes to `main`; requested manual and release
-tests fail their gate instead.
-
-Create a GitHub Actions environment named `external-integration`. Allow
-deployments from `main` and the trusted repository branches used for manual
-tests, without required reviewers.
+Before running it, create a GitHub Actions environment named
+`external-integration`. Allow deployments from `main` and the trusted
+repository branches used for manual or reusable-workflow tests, without
+required reviewers.
 Protect `main` and review workflow and dependency changes: code that can run
 with these credentials can expose them. Keep the credentials in this
 environment, not repository-wide secrets. Never run the external test on
@@ -183,16 +177,16 @@ permitted routes.
 Allow inbound WireGuard UDP traffic to the peer. Keep tunnel routes narrow:
 full-tunnel routing can disrupt the runner's connection to GitHub.
 
-After merging the workflow into `main` and configuring the trusted repository,
-the external test runs on every push to `main`. To test a trusted pull request,
+The external test runs on every push to `main`. To test a trusted pull request,
 select its repository branch in the Actions tab, run **Build and test
 WireGuard Connect**, and enable `run-external-integration-tests`. This tests the
 selected branch revision, not GitHub's pull request merge commit; the branch
-must include this workflow change. Runs share a concurrency group because the
-same peer cannot safely be used by concurrent runners. GitHub may replace a
-pending run when another is queued. Other workflows must not use that peer
-concurrently. The cleanup observer checks the runner before and after the
-action, but cannot verify cleanup when the runner terminates unexpectedly.
+must include a workflow version that supports this input. Runs share a
+concurrency group because the same peer cannot safely be used by concurrent
+runners. GitHub may replace a pending run when another is queued. Other
+workflows must not use that peer concurrently. The cleanup observer checks the
+runner before and after the action, but cannot verify cleanup when the runner
+terminates unexpectedly.
 
 A [manual run](https://github.com/geo-gaussian/wireguard-connect/actions/runs/45613653769)
 passed both runner-local scenarios and the dedicated external-peer test on a

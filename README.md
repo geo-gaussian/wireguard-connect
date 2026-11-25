@@ -11,10 +11,9 @@ The coverage badge reports unit tests, not integration tests.
 
 ## 🎯 Project Goal
 
-WireGuard Connect is intended to become a GitHub Action that gives workflow jobs
-temporary access to private network resources through a WireGuard tunnel. The
-project aims to support split-DNS and reliable teardown without exposing tunnel
-secrets in logs or leaving runner configuration behind.
+WireGuard Connect is a GitHub Action that gives workflow jobs temporary access
+to private network resources through a WireGuard tunnel. It supports optional
+split DNS and attempts to clean up the tunnel and configuration after the job.
 
 The implementation targets GitHub-hosted Ubuntu runners; macOS, Windows, and
 self-hosted runners are not supported. See the [draft requirements](./BRD.md)
@@ -24,13 +23,13 @@ and [architecture](./ARCHITECTURE.md).
 
 The action implements tunnel setup, optional split DNS and connectivity
 checking, and best-effort post-job cleanup. Integration tests exercise a
-disposable runner-local peer, DNS, and cleanup. An external-peer test can be
-requested on a trusted branch and is configured to run on `main` once the
-workflow is merged. A manual external-peer test passed on a development branch.
+disposable runner-local peer, DNS, and cleanup. The external-peer test runs on
+pushes to `main` and can be requested on a trusted branch. A manual
+external-peer test passed on a development branch.
 
 ## 🚀 Usage
 
-This example uses the published `v0.1.1` release from another repository on a
+This example uses the published `v0.2.0` release from another repository on a
 GitHub-hosted Ubuntu runner. Review the [security policy](./SECURITY.md) before
 providing credentials.
 
@@ -57,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Connect to WireGuard
-        uses: geo-gaussian/wireguard-connect@v0.1.1
+        uses: geo-gaussian/wireguard-connect@v0.2.0
         with:
           private-key: ${{ secrets.WG_PRIVATE_KEY }}
           address: ${{ vars.WG_ADDRESS }}
@@ -98,7 +97,7 @@ may interrupt the runner's connection to GitHub. The action requires `sudo`,
 `apt-get` if installation is needed, and `resolvectl` for split DNS. Subsequent
 steps in the same job can use the tunnel. At job end, the action attempts to
 revert DNS, stop the tunnel, and remove its temporary configuration. Cleanup is
-best-effort and cannot run if the runner terminates unexpectedly.
+best-effort and may not run if the runner terminates before the post step.
 
 ### 🛠️ Testing a Checkout
 

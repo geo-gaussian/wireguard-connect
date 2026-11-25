@@ -1,9 +1,58 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const script = join(process.cwd(), 'scripts/validate-release.sh');
+
+describe('release bundle checks', () => {
+  let checkout: string;
+
+  const git = (cwd: string, ...args: string[]) =>
+    execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+
+  const check = () =>
+    spawnSync('sh', [join(process.cwd(), 'scripts/check-release-bundles.sh')], {
+      cwd: checkout,
+      encoding: 'utf8',
+    });
+
+  beforeEach(() => {
+    checkout = mkdtempSync(join(tmpdir(), 'wireguard-bundles-test-'));
+    git(checkout, 'init', '--initial-branch=main');
+    for (const name of ['main', 'post']) {
+      mkdirSync(join(checkout, 'dist', name), { recursive: true });
+      writeFileSync(join(checkout, 'dist', name, 'index.js'), 'built bundle\n');
+    }
+    git(checkout, 'add', '-f', 'dist');
+  });
+
+  afterEach(() => {
+    rmSync(checkout, { recursive: true, force: true });
+  });
+
+  it('accepts tracked bundles matching the build', () => {
+    expect(check().status).toBe(0);
+  });
+
+  it('rejects a bundle that is not tracked', () => {
+    git(checkout, 'rm', '--cached', '-f', 'dist/post/index.js');
+    expect(check().status).not.toBe(0);
+  });
+
+  it('rejects a bundle that differs from the build', () => {
+    writeFileSync(join(checkout, 'dist', 'main', 'index.js'), 'different bundle\n');
+    expect(check().status).not.toBe(0);
+  });
+});
 
 describe('main CI verification', () => {
   let temporaryDirectory: string;
