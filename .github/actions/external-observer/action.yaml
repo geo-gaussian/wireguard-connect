@@ -1,0 +1,6 @@
+name: Observe external tunnel cleanup
+description: Check the runner before tunnel setup and after post-job cleanup.
+runs:
+  using: node24
+  main: observer.mts
+  post: observer.mts

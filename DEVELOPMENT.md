@@ -110,6 +110,54 @@ Network and DNS behaviour require integration testing on each platform before
 that platform can be described as supported. Passing automated checks does not
 replace a security review or establish production readiness.
 
+### 🌐 External Peer Test
+
+The manually dispatched **External WireGuard integration** workflow builds the
+checked-out action, connects to a separately configured peer, requests a private
+HTTP service through the tunnel interface, and checks for remaining action
+interfaces and configuration files after the action's post step. It does not
+replace the runner-local scenarios, test DNS restoration, or establish
+production readiness. A terminated runner may not execute either post step.
+
+Before running it, create a GitHub Actions environment named
+`external-integration`. Restrict its deployment branches to `main` and enable
+required reviewers where available. Protect `main` and review workflow and
+dependency changes: code that can run with these credentials can expose them.
+Keep the credentials in this environment, not repository-wide secrets, and do
+not approve untrusted code. The workflow itself also limits its job to `main`.
+
+Configure these environment secrets:
+
+| Secret                | Value                                                   |
+| :-------------------- | :------------------------------------------------------ |
+| `WG_PRIVATE_KEY`      | Client private key for the dedicated test peer.         |
+| `WG_ENDPOINT`         | Reachable external server hostname or IP and UDP port.  |
+| `PRIVATE_SERVICE_URL` | HTTP or HTTPS URL of the isolated private test service. |
+
+Configure these environment variables:
+
+| Variable               | Value                                                      |
+| :--------------------- | :--------------------------------------------------------- |
+| `WG_ADDRESS`           | Unique client tunnel address with CIDR prefix.             |
+| `WG_SERVER_PUBLIC_KEY` | Server WireGuard public key.                               |
+| `WG_ALLOWED_IPS`       | CIDR networks containing the test service and DNS if used. |
+| `WG_DNS_SERVER`        | Optional private DNS server IP; requires `WG_DNS_DOMAINS`. |
+| `WG_DNS_DOMAINS`       | Optional space-separated suffixes; requires DNS server.    |
+
+Use a dedicated peer with access restricted to the test service, and configure
+the server with its client public key and tunnel address. The service must
+return an HTTP 2xx response. If its URL uses private DNS, configure both DNS
+variables and ensure the DNS server is reachable through the permitted routes.
+Allow inbound WireGuard UDP traffic to the peer. Keep tunnel routes narrow:
+full-tunnel routing can disrupt the runner's connection to GitHub.
+
+After merging the workflow into `main`, run it from the Actions tab with
+`main` selected and approve the environment deployment if required. Runs are
+serialised within this workflow because the same peer cannot safely be shared
+by concurrent runners. Other workflows must not use that peer concurrently.
+The cleanup observer checks the runner before and after the action, but cannot
+verify cleanup when the runner terminates unexpectedly.
+
 ## 🧭 Spec Kit
 
 The repository includes Spec Kit templates, scripts, and Copilot skills. For

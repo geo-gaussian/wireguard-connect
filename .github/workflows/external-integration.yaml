@@ -1,0 +1,46 @@
+name: External WireGuard integration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-wireguard-integration
+  cancel-in-progress: false
+
+jobs:
+  external-integration:
+    name: Test external WireGuard peer
+    if: github.ref == 'refs/heads/main'
+    environment: external-integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the tested revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Build action bundles
+        uses: ./.github/actions/build-bundles
+      - name: Register cleanup verification
+        uses: ./.github/actions/external-observer
+      - name: Connect to the external peer
+        id: tunnel
+        uses: ./
+        with:
+          private-key: ${{ secrets.WG_PRIVATE_KEY }}
+          address: ${{ vars.WG_ADDRESS }}
+          server-public-key: ${{ vars.WG_SERVER_PUBLIC_KEY }}
+          endpoint: ${{ secrets.WG_ENDPOINT }}
+          allowed-ips: ${{ vars.WG_ALLOWED_IPS }}
+          dns-server: ${{ vars.WG_DNS_SERVER }}
+          dns-domains: ${{ vars.WG_DNS_DOMAINS }}
+      - name: Verify the private service
+        shell: sh
+        env:
+          INTERFACE: ${{ steps.tunnel.outputs.interface }}
+          PRIVATE_SERVICE_URL: ${{ secrets.PRIVATE_SERVICE_URL }}
+        run: sh .github/actions/external-observer/verify-service.sh

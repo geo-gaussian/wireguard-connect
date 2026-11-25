@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+printf '%s' "${IP_LINKS:-}"
+exit "${IP_EXIT_CODE:-0}"

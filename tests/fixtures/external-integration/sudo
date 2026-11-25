@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+if [ "$1" = install ]; then
+  exit "${SUDO_INSTALL_EXIT_CODE:-0}"
+fi
+if [ "$1" = find ]; then
+  printf '%s' "${CONFIGURATIONS:-}"
+  exit "${SUDO_FIND_EXIT_CODE:-0}"
+fi
+echo "Unexpected command." >&2
+exit 1

@@ -23,8 +23,9 @@ and [architecture](./ARCHITECTURE.md).
 
 The MVP implements tunnel setup, optional split DNS and connectivity checking,
 and best-effort post-job cleanup. Integration tests exercise a disposable
-runner-local peer, DNS, and cleanup, but do not test external servers or prove
-production readiness. No supported release is available yet.
+runner-local peer, DNS, and cleanup. An optional manual external-peer test is
+available, but these tests do not establish production readiness. No supported
+release is available yet.
 
 ## 🚀 Trial Usage
 
