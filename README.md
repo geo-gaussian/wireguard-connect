@@ -3,8 +3,9 @@
 [![Build and test](https://github.com/geo-gaussian/wireguard-connect/actions/workflows/build-and-test.yaml/badge.svg?branch=main)](https://github.com/geo-gaussian/wireguard-connect/actions/workflows/build-and-test.yaml)
 [![Coverage](https://codecov.io/github/geo-gaussian/wireguard-connect/graph/badge.svg?branch=main)](https://app.codecov.io/github/geo-gaussian/wireguard-connect)
 
-> **Early development:** The Ubuntu MVP has limited integration coverage. It is
-> not production-ready.
+> **Testing:** Integration tests cover a runner-local peer and a configured
+> external peer. Cleanup is best-effort and may not run if a runner terminates
+> unexpectedly.
 
 The coverage badge reports unit tests, not integration tests.
 
@@ -21,18 +22,17 @@ and [architecture](./ARCHITECTURE.md).
 
 ## 🚧 Current State
 
-The MVP implements tunnel setup, optional split DNS and connectivity checking,
-and best-effort post-job cleanup. Integration tests exercise a disposable
-runner-local peer, DNS, and cleanup. An external-peer test can be requested on
-a trusted branch and is configured to run on `main` once the workflow is
-merged. These tests do not establish production readiness. An experimental
-release is available, but no production-supported release is available.
+The action implements tunnel setup, optional split DNS and connectivity
+checking, and best-effort post-job cleanup. Integration tests exercise a
+disposable runner-local peer, DNS, and cleanup. An external-peer test can be
+requested on a trusted branch and is configured to run on `main` once the
+workflow is merged. A manual external-peer test passed on a development branch.
 
-## 🚀 Trial Usage
+## 🚀 Usage
 
-This example uses the published experimental `v0.1.1` MVP from another
-repository on a GitHub-hosted Ubuntu runner. Do not use production secrets with
-this unverified MVP.
+This example uses the published `v0.1.1` release from another repository on a
+GitHub-hosted Ubuntu runner. Review the [security policy](./SECURITY.md) before
+providing credentials.
 
 Before running it:
 
@@ -48,7 +48,7 @@ Before running it:
   [access from the consuming repository](https://docs.github.com/en/actions/how-tos/reuse-automations/share-across-private-repositories).
 
 ```yaml
-name: Trial WireGuard connection
+name: WireGuard connection
 
 on: workflow_dispatch
 
@@ -70,9 +70,8 @@ jobs:
         run: curl --fail -- "$PRIVATE_SERVICE_URL"
 ```
 
-This version is intended only for trials and is not a supported production
-release. Use a published version tag: `@main` does not contain the compiled
-action and cannot be used directly. Maintainers must not move or reuse tags.
+Use a published version tag: `@main` does not contain the compiled action and
+cannot be used directly. Maintainers must not move or reuse tags.
 
 ### 📥 Inputs and Output
 

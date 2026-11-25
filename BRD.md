@@ -1,7 +1,7 @@
 # 📋 Business Requirements (Draft)
 
-**Status:** Draft; an Ubuntu MVP is implemented with limited runner-local
-integration coverage, but has not been accepted for production.
+**Status:** Draft; the Ubuntu implementation has runner-local integration
+coverage and a successful external-peer test on a development branch.
 
 ## 🎯 Objective
 
@@ -44,6 +44,6 @@ end of the job.
 
 ## 🚧 Current Status
 
-This document records project intent. The Ubuntu MVP implements the intended
-lifecycle with best-effort cleanup. Runner-local integration tests provide
-limited Ubuntu coverage, but no platform has been accepted for production.
+This document records project intent. The Ubuntu implementation provides the
+intended lifecycle with best-effort cleanup. Runner-local integration tests
+exercise Ubuntu networking and DNS; a separate test exercises an external peer.

@@ -2,10 +2,9 @@
 
 ## 🚧 Project Status
 
-This project is in early development and is not suitable for production use.
-The Ubuntu MVP has limited runner-local and external-peer integration evidence,
-but has not been independently security reviewed. The published release is
-experimental; there are no production-supported releases.
+The action has runner-local integration tests and a successful external-peer
+test on a development branch. It has not been independently security reviewed.
+Cleanup is best-effort and may not run if a runner terminates unexpectedly.
 
 ## 🛡️ Security Requirements
 
@@ -46,7 +45,7 @@ private channel listed in the repository's owner profile.
 
 ## ✅ Consumer Guidance
 
-Do not pass production secrets to this MVP. When a verified release is
-available, pin dependencies and action references according to your
-organisation's security policy, and use the least network access the workflow
-requires.
+Assess the action and its test coverage against your security requirements
+before providing credentials. Pin dependencies and action references according
+to your organisation's security policy, and use the least network access the
+workflow requires.

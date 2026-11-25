@@ -1,7 +1,7 @@
 # 🏗️ Architecture
 
-> **Status:** An Ubuntu MVP implements the lifecycle below and has limited
-> integration coverage; it is not production-ready.
+> **Testing:** The lifecycle below has runner-local integration coverage and
+> has been tested against a configured external peer on a development branch.
 
 ## 🎯 Design Goal
 
@@ -10,7 +10,7 @@ workflow job and remove the tunnel and any related DNS configuration afterward.
 The implementation keeps shared input validation separate from
 operating-system-specific commands.
 
-## 🔄 MVP Lifecycle
+## 🔄 Action Lifecycle
 
 1. Read and validate action inputs, masking secret values before any logging.
 2. Detect the runner operating system and ensure required WireGuard tooling is
@@ -29,20 +29,19 @@ before secrets are written, and overwritten and removed during teardown.
 
 ## 🧩 Components
 
-| Area             | Intended responsibility                         | Current state                    |
-| :--------------- | :---------------------------------------------- | :------------------------------- |
-| `src/main.ts`    | Validate inputs and start the tunnel            | Ubuntu MVP                       |
-| `src/post.ts`    | Revert DNS and tear down the tunnel             | Best-effort cleanup              |
-| `src/config.ts`  | Parse inputs and render WireGuard configuration | Implemented                      |
-| `src/platforms/` | Isolate operating-system operations             | Linux MVP; other platforms empty |
-| `dist/`          | Compiled Node.js action bundles                 | Generated; committed on tags     |
+| Area             | Intended responsibility                         | Current state                      |
+| :--------------- | :---------------------------------------------- | :--------------------------------- |
+| `src/main.ts`    | Validate inputs and start the tunnel            | Ubuntu implementation              |
+| `src/post.ts`    | Revert DNS and tear down the tunnel             | Best-effort cleanup                |
+| `src/config.ts`  | Parse inputs and render WireGuard configuration | Implemented                        |
+| `src/platforms/` | Isolate operating-system operations             | Linux implementation; others empty |
+| `dist/`          | Compiled Node.js action bundles                 | Generated; committed on tags       |
 
 ## 🖥️ Platform Strategy
 
-The MVP targets GitHub-hosted Ubuntu and rejects self-hosted and non-Ubuntu
+The action targets GitHub-hosted Ubuntu and rejects self-hosted and non-Ubuntu
 runners. macOS and Windows are future candidates. Architectures, runner images,
-and external connectivity require further testing before production support
-can be claimed.
+and external connectivity require further testing.
 
 ## 🔐 Security Invariants
 
@@ -58,4 +57,4 @@ Unit tests cover input validation and platform command construction. Integration
 tests exercise privileged networking, DNS, and teardown against a peer isolated
 on the same GitHub-hosted Ubuntu runner. A manual external-peer test has passed
 on a development branch; the workflow is configured to run it on `main` once
-merged. This limited evidence does not establish production readiness.
+merged.

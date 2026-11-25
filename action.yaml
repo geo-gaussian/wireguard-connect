@@ -1,5 +1,5 @@
 name: Geo Gaussian WireGuard Connect
-description: 'Experimental: establish a temporary WireGuard tunnel on a GitHub-hosted Ubuntu runner.'
+description: 'Establish a temporary WireGuard tunnel on a GitHub-hosted Ubuntu runner.'
 author: Geo Gaussian Labs
 branding:
   icon: shield

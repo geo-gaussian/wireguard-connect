@@ -8,8 +8,8 @@ assignees: ''
 
 ## 🐛 Description
 
-Describe the problem. The action is an unverified Ubuntu MVP; do not include
-private keys, credentials, or live VPN configuration.
+Describe the problem. Do not include private keys, credentials, or live VPN
+configuration.
 
 ## 🔁 Steps to Reproduce
 

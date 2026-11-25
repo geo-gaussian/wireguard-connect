@@ -123,8 +123,8 @@ review of workflow and test changes, which could bypass the gate; review them
 carefully. GitHub treats skipped required checks as successful.
 
 Network and DNS behaviour require integration testing on each platform before
-that platform can be described as supported. Passing automated checks does not
-replace a security review or establish production readiness.
+that platform can be described as supported. Automated checks do not replace a
+security review.
 
 ### 🌐 External Peer Test
 
@@ -132,8 +132,8 @@ The **Build and test WireGuard Connect** workflow builds the checked-out
 action, connects to a separately configured peer, requests a private HTTP
 service through the tunnel interface, and checks for remaining action interfaces
 and configuration files after the action's post step. It does not replace the
-runner-local scenarios, test DNS restoration, or establish production readiness.
-A terminated runner may not execute either post step.
+runner-local scenarios or test DNS restoration. A terminated runner may not
+execute either post step.
 
 Before running it, set the repository-level Actions variable
 `TRUSTED_INTEGRATION_REPOSITORY` to the trusted repository's full
@@ -194,10 +194,10 @@ pending run when another is queued. Other workflows must not use that peer
 concurrently. The cleanup observer checks the runner before and after the
 action, but cannot verify cleanup when the runner terminates unexpectedly.
 
-A [manual run](https://github.com/geo-gaussian/wireguard-connect/actions/runs/45606245819)
-passed against the dedicated external peer on a development branch. This is
-evidence for that run only, not a guarantee for other peers, runners, or
-future runs.
+A [manual run](https://github.com/geo-gaussian/wireguard-connect/actions/runs/45613653769)
+passed both runner-local scenarios and the dedicated external-peer test on a
+development branch. This is evidence for that run only, not a guarantee for
+other peers, runners, or future runs.
 
 ## 🧭 Spec Kit
 
@@ -211,9 +211,8 @@ do not rename it to `.yaml`.
 
 ## 📦 Release Preparation
 
-There is no supported production release yet. Do not recommend production use
-until behaviour, security controls, platform coverage, and cleanup have been
-validated.
+Review behaviour, security controls, platform coverage, and cleanup limitations
+when preparing a release.
 
 To prepare a release:
 

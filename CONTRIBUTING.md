@@ -1,8 +1,7 @@
 # 🤝 Contributing
 
-Thanks for helping build WireGuard Connect. The project is currently an
-experimental Ubuntu MVP, so contributions should distinguish runner-local
-test coverage and limited external-peer evidence from production support.
+Thanks for helping build WireGuard Connect. Contributions should distinguish
+runner-local test coverage from external-peer evidence.
 
 ## 🚀 Getting Started
 
@@ -58,5 +57,4 @@ required by Spec Kit-managed assets.
 ## 📬 Pull Requests
 
 Describe the change and its verification clearly. Mark tests or platform
-behaviour that remains unverified; do not describe the MVP as production
-ready.
+behaviour that remains unverified.
