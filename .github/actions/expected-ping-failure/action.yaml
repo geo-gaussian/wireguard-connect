@@ -1,0 +1,34 @@
+name: Exercise an expected ping failure
+description: Run the action bundle and identify the expected integration failure.
+inputs:
+  private-key:
+    description: Ephemeral client private key.
+    required: true
+  address:
+    description: Client address.
+    required: true
+  server-public-key:
+    description: Ephemeral server public key.
+    required: true
+  endpoint:
+    description: Test peer endpoint.
+    required: true
+  allowed-ips:
+    description: Test peer routes.
+    required: true
+  dns-server:
+    description: Test DNS server.
+    required: true
+  dns-domains:
+    description: Test DNS domains.
+    required: true
+  verify-host:
+    description: Unreachable test host.
+    required: true
+outputs:
+  expected-ping-failure:
+    description: Whether the bundle reported only the expected ping failure.
+runs:
+  using: node24
+  main: main.mts
+  post: ../../../dist/post/index.js

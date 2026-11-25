@@ -12,8 +12,8 @@ runs:
       uses: ./.github/actions/integration-observer
     - name: Connect to the test peer
       id: tunnel
+      if: ${{ inputs.scenario != 'failure' }}
       uses: ./
-      continue-on-error: ${{ inputs.scenario == 'failure' }}
       with:
         private-key: ${{ steps.peer.outputs.private-key }}
         address: 10.99.0.2/32
@@ -22,10 +22,25 @@ runs:
         allowed-ips: 10.99.0.0/24
         dns-server: 10.99.0.1
         dns-domains: internal.test
-        verify-host: ${{ inputs.scenario == 'failure' && '10.99.0.254' || '10.99.0.1' }}
+        verify-host: 10.99.0.1
+    - name: Connect with an unreachable verification host
+      id: failure
+      if: ${{ inputs.scenario == 'failure' }}
+      uses: ./.github/actions/expected-ping-failure
+      continue-on-error: true
+      with:
+        private-key: ${{ steps.peer.outputs.private-key }}
+        address: 10.99.0.2/32
+        server-public-key: ${{ steps.peer.outputs.public-key }}
+        endpoint: 198.18.0.2:51820
+        allowed-ips: 10.99.0.0/24
+        dns-server: 10.99.0.1
+        dns-domains: internal.test
+        verify-host: 10.99.0.254
     - name: Verify the scenario
       shell: sh
       env:
         SCENARIO: ${{ inputs.scenario }}
-        TUNNEL_OUTCOME: ${{ steps.tunnel.outcome }}
+        TUNNEL_OUTCOME: ${{ inputs.scenario == 'failure' && steps.failure.outcome || steps.tunnel.outcome }}
+        EXPECTED_PING_FAILURE: ${{ steps.failure.outputs.expected-ping-failure }}
       run: sh .github/actions/integration-test/verify.sh

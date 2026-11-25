@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-case "$SCENARIO:$TUNNEL_OUTCOME" in
-  success:success | failure:failure) ;;
+case "$SCENARIO:$TUNNEL_OUTCOME:${EXPECTED_PING_FAILURE:-}" in
+  success:success: | failure:failure:true) ;;
   *) echo "Unexpected integration scenario outcome." >&2; exit 1 ;;
 esac
 

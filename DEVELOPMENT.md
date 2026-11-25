@@ -100,7 +100,9 @@ integration scenarios create an isolated, temporary WireGuard peer and DNS
 server on a GitHub-hosted Ubuntu runner. They check connectivity, DNS, a
 deliberate setup failure, and post-job cleanup. The peer is on the same runner,
 so these checks do not verify reachability to an external server. They require
-no persistent WireGuard credentials.
+no persistent WireGuard credentials. The failure scenario logs its expected
+ping failure without creating an error annotation; unexpected failures still
+fail the scenario.
 
 Review changes to the workflow and test harness. Do not pass production secrets
 to pull requests or run untrusted pull request code with privileged credentials.
