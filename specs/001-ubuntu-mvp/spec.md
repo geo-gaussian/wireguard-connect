@@ -32,7 +32,8 @@ and production readiness remain unverified.
 - A GitHub-hosted Ubuntu integration test demonstrates tunnel connectivity,
   split DNS, and cleanup before platform support is claimed.
 - Release-tag action bundles match the TypeScript source.
-- Pull requests require an approved integration test run before merging.
+- Pull requests require a successful runner-local integration gate before
+  merging.
 
 ## 🚫 Scope and Limitations
 

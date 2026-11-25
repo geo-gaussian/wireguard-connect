@@ -1,7 +1,7 @@
 # 🏗️ Architecture
 
 > **Status:** An Ubuntu MVP implements the lifecycle below and has limited
-> runner-local integration coverage; it is not production-ready.
+> integration coverage; it is not production-ready.
 
 ## 🎯 Design Goal
 
@@ -56,6 +56,6 @@ certification.
 
 Unit tests cover input validation and platform command construction. Integration
 tests exercise privileged networking, DNS, and teardown against a peer isolated
-on the same GitHub-hosted Ubuntu runner. An external-peer test runs on `main`
-and can be requested on a trusted branch; its availability alone does not
-establish external connectivity or production readiness.
+on the same GitHub-hosted Ubuntu runner. A manual external-peer test has passed
+on a development branch; the workflow is configured to run it on `main` once
+merged. This limited evidence does not establish production readiness.

@@ -2,7 +2,7 @@
 
 Thanks for helping build WireGuard Connect. The project is currently an
 experimental Ubuntu MVP, so contributions should distinguish runner-local
-test coverage from unverified external connectivity and production support.
+test coverage and limited external-peer evidence from production support.
 
 ## 🚀 Getting Started
 

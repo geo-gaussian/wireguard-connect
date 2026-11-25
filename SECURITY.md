@@ -3,8 +3,9 @@
 ## 🚧 Project Status
 
 This project is in early development and is not suitable for production use.
-The Ubuntu MVP has runner-local integration coverage, but has not been
-independently security reviewed. There are no supported releases.
+The Ubuntu MVP has limited runner-local and external-peer integration evidence,
+but has not been independently security reviewed. The published release is
+experimental; there are no production-supported releases.
 
 ## 🛡️ Security Requirements
 
@@ -20,8 +21,8 @@ The implementation is expected to:
   partial cleanup failures.
 
 Tunnel unit tests mock system operations; integration tests exercise tunnel,
-DNS, and cleanup against a disposable runner-local peer. Neither is a security
-certification.
+DNS, and cleanup against a disposable runner-local peer. A separate test can
+exercise a configured external peer. None is a security certification.
 
 CI also audits production dependencies. GitHub-managed CodeQL scans the
 default branch and eligible pull requests; GitHub secret scanning and push

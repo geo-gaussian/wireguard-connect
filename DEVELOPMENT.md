@@ -41,11 +41,11 @@ Spelling checks enforce British English in project prose. Add narrowly scoped
 exceptions to `ignoreRegExpList` in `cspell.config.yaml` for external
 identifiers that must retain their published spelling.
 
-Tests in `tests/` mock tunnel platform commands and filesystem operations; the
-release-script tests use temporary local Git repositories. CI runs lint, unit
-tests, and builds on Node.js 24 and 26, and audits production dependencies.
-On release tag pushes, CI also verifies that the committed bundles match a
-fresh build.
+Tests in `tests/` cover tunnel platform commands with mocks, local HTTP
+responses, and release scripts using temporary local Git repositories. CI runs
+lint, unit tests, and builds on Node.js 24 and 26, and audits production
+dependencies. On release tag pushes, CI also verifies that the committed
+bundles match a fresh build.
 
 For direct pull requests and pushes to `main`, a separate Node.js 24 job
 reports unit test coverage for `src/` to Codecov. It does not report integration
@@ -68,13 +68,14 @@ automatically on those events. For pull requests, the `Integration gate`
 check fails if either scenario does not pass. GitHub's fork workflow approval
 settings may still require approval for some pull requests.
 
-The external peer test runs automatically on pushes to `main`. Maintainers can
-also run it manually on a trusted branch using the `run-external-integration-tests`
-input. The release workflow requests the external test against its built
-bundles. Maintainers can request runner-local integration on manual runs or
-reusable calls with the `run-integration-tests` input. The workflow distinguishes
-direct runs from reusable calls using its repository and workflow path; update
-that comparison if either changes.
+Once this workflow is merged into `main`, the external peer test runs
+automatically on pushes to `main`. Maintainers can also run it manually on a
+trusted branch using the `run-external-integration-tests` input. The release
+workflow requests the external test against its built bundles. Maintainers can
+request runner-local integration on manual runs or reusable calls with the
+`run-integration-tests` input. The workflow distinguishes direct runs from
+reusable calls using its repository and workflow path; update that comparison
+if either changes.
 
 Tag pushes do not publish a release or deploy the action. Tags pushed by a
 workflow using `GITHUB_TOKEN` generally do not trigger this workflow.
@@ -139,7 +140,7 @@ Configure these environment secrets:
 | Secret                | Value                                                   |
 | :-------------------- | :------------------------------------------------------ |
 | `WG_PRIVATE_KEY`      | Client private key for the dedicated test peer.         |
-| `WG_ENDPOINT`         | Reachable external server hostname or IP and UDP port.  |
+| `WG_ENDPOINT`         | External server hostname or IP and UDP port.            |
 | `PRIVATE_SERVICE_URL` | HTTP or HTTPS URL of the isolated private test service. |
 
 Configure these environment variables:
@@ -153,12 +154,15 @@ Configure these environment variables:
 | `WG_DNS_DOMAINS`       | Optional space-separated suffixes; requires DNS server.    |
 
 Use a dedicated peer with access restricted to the test service, and configure
-the server with its client public key and tunnel address. The service must
-return an HTTP 2xx or 3xx response; redirects are not followed. The test logs
-the status and response body, including for unsuccessful HTTP responses, so use
-a service that does not return sensitive information. If its URL uses private
-DNS, configure both DNS variables and ensure the DNS server is reachable
-through the permitted routes.
+the server with its client public key and tunnel address. The endpoint must be
+reachable from the runner, and an endpoint hostname must resolve before the
+tunnel is established; tunnel DNS cannot resolve the endpoint during setup.
+The service must return an HTTP 2xx or 3xx response; redirects are not
+followed, so a 3xx response does not verify its destination. The test logs the
+status and response body, including for unsuccessful HTTP responses, so use a
+service that does not return sensitive information. If its URL uses private DNS,
+configure both DNS variables and ensure the DNS server is reachable through the
+permitted routes.
 Allow inbound WireGuard UDP traffic to the peer. Keep tunnel routes narrow:
 full-tunnel routing can disrupt the runner's connection to GitHub.
 
@@ -172,6 +176,11 @@ used by concurrent runners. GitHub may replace a pending run when another is
 queued. Other workflows must not use that peer concurrently. The cleanup
 observer checks the runner before and after the action, but cannot verify
 cleanup when the runner terminates unexpectedly.
+
+A [manual run](https://github.com/geo-gaussian/wireguard-connect/actions/runs/45606245819)
+passed against the dedicated external peer on a development branch. This is
+evidence for that run only, not a guarantee for other peers, runners, or
+future runs.
 
 ## 🧭 Spec Kit
 
@@ -191,10 +200,11 @@ validated.
 
 To prepare a release:
 
-1. Merge the release preparation changes into `main` and confirm its checks
-   pass. Verify the GitHub-managed CodeQL scan succeeded for that exact commit
-   and review its alerts; the release workflow does not enforce this check.
-   Complete a security review before production use.
+1. Ensure the release preparation workflow and intended changes are merged
+   into `main` and confirm its checks pass. Verify the GitHub-managed CodeQL
+   scan succeeded for that exact commit and review its alerts; the release
+   workflow does not enforce this check. Complete a security review before
+   production use.
 2. Run **Prepare release tag** from `main` with the intended version. The
    workflow requires the latest push-triggered CI run for that exact commit to
    have succeeded, including both Node.js checks and the runner-local and
@@ -217,7 +227,7 @@ To prepare a release:
    the tag workflow; the preparation workflow performs its own checks. The
    tag itself does not publish a release or Marketplace listing.
 
-The package version tracks the intended release, but consumers use the Git
-tag, not the package version, to reference the action. The Marketplace name is
+Consumers use the Git tag, not the package version, to reference the action.
+Release preparation does not update `package.json`. The Marketplace name is
 `Geo Gaussian WireGuard Connect`; GitHub checks its availability when
 publishing.

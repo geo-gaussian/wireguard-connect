@@ -3,8 +3,8 @@
 [![Build and test](https://github.com/geo-gaussian/wireguard-connect/actions/workflows/build-and-test.yaml/badge.svg?branch=main)](https://github.com/geo-gaussian/wireguard-connect/actions/workflows/build-and-test.yaml)
 [![Coverage](https://codecov.io/github/geo-gaussian/wireguard-connect/graph/badge.svg?branch=main)](https://app.codecov.io/github/geo-gaussian/wireguard-connect)
 
-> **Early development:** The Ubuntu MVP has limited runner-local integration
-> coverage. It is not production-ready.
+> **Early development:** The Ubuntu MVP has limited integration coverage. It is
+> not production-ready.
 
 The coverage badge reports unit tests, not integration tests.
 
@@ -23,25 +23,27 @@ and [architecture](./ARCHITECTURE.md).
 
 The MVP implements tunnel setup, optional split DNS and connectivity checking,
 and best-effort post-job cleanup. Integration tests exercise a disposable
-runner-local peer, DNS, and cleanup. An external-peer test runs on `main` and
-can be requested on a trusted branch, but these tests do not establish
-production readiness. No supported release is available yet.
+runner-local peer, DNS, and cleanup. An external-peer test can be requested on
+a trusted branch and is configured to run on `main` once the workflow is
+merged. These tests do not establish production readiness. An experimental
+release is available, but no production-supported release is available.
 
 ## 🚀 Trial Usage
 
-This example is for testing the experimental `v0.1.0` MVP from another
-repository on a GitHub-hosted Ubuntu runner. It works once that tag has been
-published. Do not use production secrets with this unverified MVP.
+This example uses the published experimental `v0.1.1` MVP from another
+repository on a GitHub-hosted Ubuntu runner. Do not use production secrets with
+this unverified MVP.
 
 Before running it:
 
 - Configure a separate WireGuard peer that accepts the client public key and
-  address. Its endpoint must be reachable from the GitHub-hosted runner.
-- Add `WG_PRIVATE_KEY` as a secret in the consuming repository. Add
-  `WG_ADDRESS`, `WG_SERVER_PUBLIC_KEY`, `WG_ENDPOINT`, and `WG_ALLOWED_IPS`
-  as repository variables.
-- Add `PRIVATE_SERVICE_URL` as a repository variable containing the URL of a
-  service reachable through the tunnel.
+  address. Its endpoint must be reachable from the GitHub-hosted runner and
+  any endpoint hostname must resolve before the tunnel is established.
+- Add `WG_PRIVATE_KEY`, `WG_ENDPOINT`, and `PRIVATE_SERVICE_URL` as secrets in
+  the consuming repository. The URL must identify a service reachable through
+  the tunnel.
+- Add `WG_ADDRESS`, `WG_SERVER_PUBLIC_KEY`, and `WG_ALLOWED_IPS` as repository
+  variables.
 - If the action repository is private, enable
   [access from the consuming repository](https://docs.github.com/en/actions/how-tos/reuse-automations/share-across-private-repositories).
 
@@ -55,16 +57,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Connect to WireGuard
-        uses: geo-gaussian/wireguard-connect@v0.1.0
+        uses: geo-gaussian/wireguard-connect@v0.1.1
         with:
           private-key: ${{ secrets.WG_PRIVATE_KEY }}
           address: ${{ vars.WG_ADDRESS }}
           server-public-key: ${{ vars.WG_SERVER_PUBLIC_KEY }}
-          endpoint: ${{ vars.WG_ENDPOINT }}
+          endpoint: ${{ secrets.WG_ENDPOINT }}
           allowed-ips: ${{ vars.WG_ALLOWED_IPS }}
       - name: Reach a private service
         env:
-          PRIVATE_SERVICE_URL: ${{ vars.PRIVATE_SERVICE_URL }}
+          PRIVATE_SERVICE_URL: ${{ secrets.PRIVATE_SERVICE_URL }}
         run: curl --fail -- "$PRIVATE_SERVICE_URL"
 ```
 
