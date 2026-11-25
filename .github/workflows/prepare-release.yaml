@@ -17,7 +17,6 @@ jobs:
     uses: ./.github/workflows/build-and-test.yaml
     secrets: inherit
     with:
-      run-integration-tests: false
       run-external-integration-tests: true
       release-bundle-name: release-bundles
 
@@ -66,34 +65,9 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  integration:
-    name: Test release bundles (${{ matrix.scenario }})
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [success, failure]
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v7
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Download release bundles
-        uses: actions/download-artifact@v8
-        with:
-          name: release-bundles
-          path: dist
-      - name: Run integration scenario
-        uses: ./.github/actions/integration-test
-        with:
-          scenario: ${{ matrix.scenario }}
-
   tag:
     name: Create release tag
-    needs: [checks, build, integration]
+    needs: [checks, build]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

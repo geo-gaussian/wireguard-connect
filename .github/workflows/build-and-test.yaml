@@ -9,20 +9,12 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
-      run-integration-tests:
-        description: Run integration tests
-        type: boolean
-        default: false
       run-external-integration-tests:
         description: Run the external peer test on the selected branch
         type: boolean
         default: false
   workflow_call:
     inputs:
-      run-integration-tests:
-        description: Run integration tests
-        type: boolean
-        default: false
       run-external-integration-tests:
         description: Run the external peer test
         type: boolean
@@ -125,10 +117,6 @@ jobs:
 
   integration:
     name: Integration tests (${{ matrix.scenario }})
-    if: >-
-      ((github.event_name == 'pull_request' || github.event_name == 'push') &&
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)) ||
-      inputs.run-integration-tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -144,9 +132,15 @@ jobs:
           persist-credentials: false
       - name: Build integration bundles
         if: >-
-          ${{ !(github.event_name == 'push' && github.ref_type == 'tag' &&
+          ${{ inputs.release-bundle-name == '' && !(github.event_name == 'push' && github.ref_type == 'tag' &&
           github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)) }}
         uses: ./.github/actions/build-bundles
+      - name: Download release bundles
+        if: inputs.release-bundle-name != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.release-bundle-name }}
+          path: dist
       - name: Run integration scenario
         uses: ./.github/actions/integration-test
         with:

@@ -71,19 +71,19 @@ requests from forks, nor does the release workflow trigger a new scan. Check
 the default-branch scan and its alerts before preparing a release.
 
 CI runs on pushes to `main` and `v*` tags, and when pull requests targeting
-`main` are opened, updated, or reopened. Runner-local integration tests run
-automatically on those events. For pull requests, the `Integration gate`
-check fails if either scenario does not pass. GitHub's fork workflow approval
-settings may still require approval for some pull requests.
+`main` are opened, updated, or reopened. Runner-local integration tests run on
+every workflow invocation, including manual runs and reusable calls. For pull
+requests, the `Integration gate` check fails if either scenario does not pass.
+GitHub's fork workflow approval settings may still require approval for some
+pull requests.
 
 Once this workflow is merged into `main`, the external peer test runs
 automatically on pushes to `main`. Maintainers can also run it manually on a
 trusted branch using the `run-external-integration-tests` input. The release
-workflow requests the external test against its built bundles. Maintainers can
-request runner-local integration on manual runs or reusable calls with the
-`run-integration-tests` input. The workflow distinguishes direct runs from
-reusable calls using its repository and workflow path; update that comparison
-if either changes.
+workflow runs both runner-local scenarios and requests the external test
+against its built bundles. The workflow distinguishes direct runs from reusable
+calls using its repository and workflow path; update that comparison if either
+changes.
 
 Tag pushes do not publish a release or deploy the action. Tags pushed by a
 workflow using `GITHUB_TOKEN` generally do not trigger this workflow.
