@@ -126,35 +126,10 @@ jobs:
           plugins: noop
           fail_ci_if_error: true
 
-  integration-pr:
+  integration:
     name: Integration tests (${{ matrix.scenario }})
     if: >-
-      github.event_name == 'pull_request' &&
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [success, failure]
-    steps:
-      - name: Check out the tested revision
-        uses: actions/checkout@v7
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          persist-credentials: false
-      - name: Build integration bundles
-        uses: ./.github/actions/build-bundles
-      - name: Run integration scenario
-        uses: ./.github/actions/integration-test
-        with:
-          scenario: ${{ matrix.scenario }}
-
-  integration-requested:
-    name: Integration tests (${{ matrix.scenario }})
-    if: >-
-      (github.event_name == 'push' &&
+      ((github.event_name == 'pull_request' || github.event_name == 'push') &&
       github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)) ||
       inputs.run-integration-tests
     runs-on: ubuntu-latest
@@ -185,11 +160,11 @@ jobs:
     if: >-
       always() && github.event_name == 'pull_request' &&
       github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
-    needs: integration-pr
+    needs: integration
     runs-on: ubuntu-latest
     steps:
       - name: Require all integration scenarios to pass
-        if: needs.integration-pr.result != 'success'
+        if: needs.integration.result != 'success'
         run: exit 1
 
   external-integration:
