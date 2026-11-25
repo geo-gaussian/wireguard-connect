@@ -3,7 +3,7 @@ description: 'Experimental: establish a temporary WireGuard tunnel on a GitHub-h
 author: Geo Gaussian Labs
 branding:
   icon: shield
-  color: orange # cspell:disable-line
+  color: orange
 inputs:
   private-key:
     description: Base64-encoded WireGuard client private key.

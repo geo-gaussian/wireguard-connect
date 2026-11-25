@@ -35,7 +35,7 @@ jobs:
       - name: Check both bundles exist
         run: test -s dist/main/index.js && test -s dist/post/index.js
       - name: Save release bundles
-        uses: actions/upload-artifact@v7 # cspell:disable-line
+        uses: actions/upload-artifact@v7
         with:
           name: release-bundles
           path: |
@@ -60,7 +60,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Download release bundles
-        uses: actions/download-artifact@v8 # cspell:disable-line
+        uses: actions/download-artifact@v8
         with:
           name: release-bundles
           path: dist
@@ -83,7 +83,7 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: true
       - name: Download tested bundles
-        uses: actions/download-artifact@v8 # cspell:disable-line
+        uses: actions/download-artifact@v8
         with:
           name: release-bundles
           path: dist

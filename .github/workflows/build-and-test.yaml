@@ -6,7 +6,7 @@ on:
     tags: ['v*']
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened] # cspell:disable-line
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       run_integration_tests:

@@ -37,6 +37,10 @@ from running another package manager.
 | `pnpm run format`        | Apply Prettier formatting to supported project files. |
 | `pnpm run setup-hooks`   | Configure the local Git pre-commit hook.              |
 
+Spelling checks enforce British English in project prose. Add narrowly scoped
+exceptions to `ignoreRegExpList` in `cspell.config.yaml` for external
+identifiers that must retain their published spelling.
+
 Tests in `tests/` mock tunnel platform commands and filesystem operations; the
 release-script tests use temporary local Git repositories. CI runs lint, unit
 tests, and builds on Node.js 24 and 26, and audits production dependencies.
