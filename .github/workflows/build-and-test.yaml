@@ -37,12 +37,15 @@ permissions:
 
 jobs:
   checks:
-    name: Lint, test, and build (Node.js ${{ matrix.node }})
+    name: Lint, test, and build (Node.js 24)
     if: inputs.release-bundle-name == ''
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [24, 26]
+    env:
+      REPORT_COVERAGE: >-
+        ${{ github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref) &&
+        (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) }}
+    outputs:
+      coverage-upload-outcome: ${{ steps.upload-coverage.outcome }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -59,7 +62,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 24
           cache: pnpm
 
       - name: Install dependencies
@@ -69,10 +72,14 @@ jobs:
         run: pnpm run lint
 
       - name: Test
+        if: env.REPORT_COVERAGE != 'true'
         run: pnpm test
 
+      - name: Test with coverage
+        if: env.REPORT_COVERAGE == 'true'
+        run: pnpm run test:coverage
+
       - name: Audit production dependencies
-        if: matrix.node == 24
         run: pnpm audit --prod --audit-level high
 
       - name: Build
@@ -90,34 +97,11 @@ jobs:
           github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
         run: git diff --exit-code -- dist
 
-  coverage:
-    name: Unit test coverage
-    if: >-
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref) &&
-      (github.event_name == 'pull_request' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the tested revision
-        uses: actions/checkout@v7
-        with:
-          repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
-          persist-credentials: false
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 12.21.0
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Generate coverage report
-        run: pnpm run test:coverage
       - name: Upload coverage to Codecov
+        id: upload-coverage
+        if: env.REPORT_COVERAGE == 'true'
+        # Report upload failures separately from the required checks.
+        continue-on-error: true
         uses: codecov/codecov-action@v7
         with:
           files: ./coverage/lcov.info
@@ -125,6 +109,19 @@ jobs:
           disable_telem: true # cspell:disable-line
           plugins: noop
           fail_ci_if_error: true
+
+  coverage:
+    name: Unit test coverage
+    needs: checks
+    if: >-
+      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref) &&
+      (github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require successful Codecov upload
+        if: needs.checks.outputs.coverage-upload-outcome != 'success'
+        run: exit 1
 
   integration:
     name: Integration tests (${{ matrix.scenario }})

@@ -17,11 +17,6 @@
       "conclusion": "success"
     },
     {
-      "name": "Lint, test, and build (Node.js 26)",
-      "status": "completed",
-      "conclusion": "success"
-    },
-    {
       "name": "Integration tests (success)",
       "status": "completed",
       "conclusion": "success"

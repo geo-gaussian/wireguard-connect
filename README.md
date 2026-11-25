@@ -120,6 +120,9 @@ pnpm test
 pnpm run build
 ```
 
+CI tests Node.js 24, the action runtime; other development versions are not
+tested in CI.
+
 See the [development guide](./DEVELOPMENT.md) and
 [contribution guide](./CONTRIBUTING.md) for details.
 

@@ -6,7 +6,8 @@ test coverage and limited external-peer evidence from production support.
 
 ## 🚀 Getting Started
 
-Use Node.js 24 or later (Node.js 26 LTS recommended) and pnpm 12.21.0:
+Use Node.js 24 or later (Node.js 26 LTS recommended) and pnpm 12.21.0.
+CI tests Node.js 24, the action runtime. To set up the checkout:
 
 ```sh
 pnpm install

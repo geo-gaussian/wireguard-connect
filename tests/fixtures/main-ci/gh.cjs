@@ -36,12 +36,13 @@ if (args[3].endsWith('/runs')) {
     head_sha: fixture.run.head_sha,
   }));
   if (scenario === 'missing-job') jobs.pop();
-  if (scenario === 'failed-job') jobs[2].conclusion = 'failure';
-  if (scenario === 'skipped-job') jobs[4].conclusion = 'skipped';
+  if (scenario === 'missing-node-24') jobs.shift();
+  if (scenario === 'failed-job') jobs[0].conclusion = 'failure';
+  if (scenario === 'skipped-job') jobs[3].conclusion = 'skipped';
   if (scenario === 'duplicate-job') jobs.push(jobs[0]);
-  if (scenario === 'rerun-passed') jobs.push({ ...jobs[4], run_attempt: 2 });
+  if (scenario === 'rerun-passed') jobs.push({ ...jobs[3], run_attempt: 2 });
   if (scenario === 'rerun-skipped') {
-    jobs.push({ ...jobs[4], run_attempt: 2, conclusion: 'skipped' });
+    jobs.push({ ...jobs[3], run_attempt: 2, conclusion: 'skipped' });
   }
   console.log(JSON.stringify({ total_count: jobs.length, jobs }));
 } else {

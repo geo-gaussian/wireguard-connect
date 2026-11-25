@@ -37,25 +37,33 @@ from running another package manager.
 | `pnpm run format`        | Apply Prettier formatting to supported project files. |
 | `pnpm run setup-hooks`   | Configure the local Git pre-commit hook.              |
 
+`pnpm run test:coverage` runs the same Jest suite as `pnpm test`, so use it
+instead when a local coverage report is needed.
+
 Spelling checks enforce British English in project prose. Add narrowly scoped
 exceptions to `ignoreRegExpList` in `cspell.config.yaml` for external
 identifiers that must retain their published spelling.
 
 Tests in `tests/` cover tunnel platform commands with mocks, local HTTP
 responses, and release scripts using temporary local Git repositories. CI runs
-lint, unit tests, and builds on Node.js 24 and 26, and audits production
-dependencies. On release tag pushes, CI also verifies that the committed
-bundles match a fresh build.
+lint, unit tests, and builds on Node.js 24, and audits production dependencies.
+Other development Node.js versions are not tested in CI. On release tag
+pushes, CI also verifies that the committed bundles match a fresh build.
 
-For direct pull requests and pushes to `main`, a separate Node.js 24 job
-reports unit test coverage for `src/` to Codecov. It does not report integration
-coverage. To enable uploads, install the [Codecov GitHub app](https://github.com/apps/codecov)
+For direct pull requests and pushes to `main`, the Node.js 24 test run generates
+unit test coverage for `src/` without running the suite twice. The checks job
+uploads it to Codecov after the other checks pass; it does not report
+integration coverage. When the checks job runs for other events, it executes
+the tests without coverage. To enable uploads, install the
+[Codecov GitHub app](https://github.com/apps/codecov)
 for this repository, activate it in Codecov, and disable token authentication
 for public repositories in the organisation's Codecov settings. This
 organisation-wide setting permits unauthenticated uploads, including forged
 reports. The coverage badge appears after the first successful upload to
-`main`; upload failures fail the coverage job, not the required lint, test,
-and build checks.
+`main`; upload failures fail the separate coverage job, not the required lint,
+test, and build checks. The coverage job is skipped if the checks job fails.
+An upload failure still fails the workflow run and prevents release
+preparation from using that run.
 
 GitHub-managed CodeQL default setup separately scans the default branch and
 eligible pull requests, and runs scheduled scans. It does not scan pull
@@ -207,7 +215,7 @@ To prepare a release:
    production use.
 2. Run **Prepare release tag** from `main` with the intended version. The
    workflow requires the latest push-triggered CI run for that exact commit to
-   have succeeded, including both Node.js checks and the runner-local and
+   have succeeded, including the Node.js 24 check and the runner-local and
    external integration jobs. It then tests the generated bundles against both
    peers and pushes a tag pointing to a separate commit containing those
    bundles. It refuses existing tags and checks that `main` has not changed

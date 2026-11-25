@@ -61,6 +61,7 @@ describe('main CI verification', () => {
     'latest-failed',
     'truncated-runs',
     'missing-job',
+    'missing-node-24',
     'failed-job',
     'skipped-job',
     'duplicate-job',

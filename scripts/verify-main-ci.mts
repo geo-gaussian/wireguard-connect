@@ -2,7 +2,6 @@ import { execFileSync } from 'node:child_process';
 
 const requiredJobs = [
   'Lint, test, and build (Node.js 24)',
-  'Lint, test, and build (Node.js 26)',
   'Integration tests (success)',
   'Integration tests (failure)',
   'Test external WireGuard peer',
