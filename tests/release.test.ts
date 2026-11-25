@@ -5,6 +5,81 @@ import { join } from 'node:path';
 
 const script = join(process.cwd(), 'scripts/validate-release.sh');
 
+describe('main CI verification', () => {
+  let temporaryDirectory: string;
+  let argumentsFile: string;
+
+  beforeEach(() => {
+    temporaryDirectory = mkdtempSync(join(tmpdir(), 'wireguard-ci-test-'));
+    argumentsFile = join(temporaryDirectory, 'arguments');
+  });
+
+  afterEach(() => {
+    rmSync(temporaryDirectory, { recursive: true, force: true });
+  });
+
+  function verify(scenario: string, extra: NodeJS.ProcessEnv = {}) {
+    return spawnSync(process.execPath, [join(process.cwd(), 'scripts/verify-main-ci.mts')], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PATH: `${join(process.cwd(), 'tests/fixtures/main-ci/bin')}:${process.env.PATH}`,
+        GITHUB_REPOSITORY: 'example/project',
+        GITHUB_SHA: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        GH_ARGUMENTS_FILE: argumentsFile,
+        GH_SCENARIO: scenario,
+        ...extra,
+      },
+    });
+  }
+
+  it('accepts a successful main run with every required job', () => {
+    const result = verify('success');
+    expect(result.status).toBe(0);
+    const calls: string[][] = readFileSync(argumentsFile, 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    expect(calls).toHaveLength(2);
+    expect(calls[0]).toContain('repos/example/project/actions/workflows/build-and-test.yaml/runs');
+    expect(calls[0]).toContain('branch=main');
+    expect(calls[0]).toContain('event=push');
+    expect(calls[0]).toContain('head_sha=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
+    expect(calls[1]).toContain('repos/example/project/actions/runs/1/jobs');
+    expect(calls[1]).toContain('filter=all');
+  });
+
+  it('accepts a successful partial rerun using the latest result for each job', () => {
+    expect(verify('rerun-passed').status).toBe(0);
+  });
+
+  it.each([
+    'missing-run',
+    'wrong-commit',
+    'pending-run',
+    'failed-run',
+    'latest-failed',
+    'truncated-runs',
+    'missing-job',
+    'failed-job',
+    'skipped-job',
+    'duplicate-job',
+    'rerun-skipped',
+    'invalid-response',
+    'api-error',
+  ])('rejects %s', (scenario) => {
+    const result = verify(scenario);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).not.toBe('');
+  });
+
+  it('rejects an invalid commit before querying GitHub', () => {
+    const result = verify('success', { GITHUB_SHA: 'not-a-commit' });
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain('valid GitHub repository and commit SHA are required');
+  });
+});
+
 it('accepts a version tag requested from main', () => {
   const result = spawnSync('sh', [script], {
     encoding: 'utf8',

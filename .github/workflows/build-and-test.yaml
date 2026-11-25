@@ -9,16 +9,28 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
-      run_integration_tests:
+      run-integration-tests:
         description: Run integration tests
+        type: boolean
+        default: false
+      run-external-integration-tests:
+        description: Run the external peer test on the selected branch
         type: boolean
         default: false
   workflow_call:
     inputs:
-      run_integration_tests:
+      run-integration-tests:
         description: Run integration tests
         type: boolean
         default: false
+      run-external-integration-tests:
+        description: Run the external peer test
+        type: boolean
+        default: false
+      release-bundle-name:
+        description: Name of the release bundle to test
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -26,6 +38,7 @@ permissions:
 jobs:
   checks:
     name: Lint, test, and build (Node.js ${{ matrix.node }})
+    if: inputs.release-bundle-name == ''
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -118,7 +131,6 @@ jobs:
     if: >-
       github.event_name == 'pull_request' &&
       github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
-    environment: integration-approval
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -144,7 +156,7 @@ jobs:
     if: >-
       (github.event_name == 'push' &&
       github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)) ||
-      inputs.run_integration_tests
+      inputs.run-integration-tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -178,4 +190,65 @@ jobs:
     steps:
       - name: Require all integration scenarios to pass
         if: needs.integration-pr.result != 'success'
+        run: exit 1
+
+  external-integration:
+    name: Test external WireGuard peer
+    if: >-
+      github.repository == 'geo-gaussian/wireguard-connect' &&
+      ((github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref) &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/') && inputs.run-external-integration-tests))) ||
+      (github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/prepare-release.yaml@{0}', github.ref) &&
+      github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run-external-integration-tests))
+    environment: external-integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: external-wireguard-integration
+      cancel-in-progress: false
+    steps:
+      - name: Check out the tested revision
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
+          persist-credentials: false
+      - name: Build action bundles
+        if: inputs.release-bundle-name == ''
+        uses: ./.github/actions/build-bundles
+      - name: Download release bundles
+        if: inputs.release-bundle-name != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.release-bundle-name }}
+          path: dist
+      - name: Register cleanup verification
+        uses: ./.github/actions/external-observer
+      - name: Connect to the external peer
+        id: tunnel
+        uses: ./
+        with:
+          private-key: ${{ secrets.WG_PRIVATE_KEY }}
+          address: ${{ vars.WG_ADDRESS }}
+          server-public-key: ${{ vars.WG_SERVER_PUBLIC_KEY }}
+          endpoint: ${{ secrets.WG_ENDPOINT }}
+          allowed-ips: ${{ vars.WG_ALLOWED_IPS }}
+          dns-server: ${{ vars.WG_DNS_SERVER }}
+          dns-domains: ${{ vars.WG_DNS_DOMAINS }}
+      - name: Verify the private service
+        shell: sh
+        env:
+          INTERFACE: ${{ steps.tunnel.outputs.interface }}
+          PRIVATE_SERVICE_URL: ${{ secrets.PRIVATE_SERVICE_URL }}
+        run: sh .github/actions/external-observer/verify-service.sh
+
+  external-integration-gate:
+    name: Requested external integration gate
+    if: always() && inputs.run-external-integration-tests
+    needs: external-integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the external test to pass
+        if: needs.external-integration.result != 'success'
         run: exit 1

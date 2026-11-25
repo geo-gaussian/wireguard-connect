@@ -63,14 +63,18 @@ requests from forks, nor does the release workflow trigger a new scan. Check
 the default-branch scan and its alerts before preparing a release.
 
 CI runs on pushes to `main` and `v*` tags, and when pull requests targeting
-`main` are opened, updated, or reopened. Integration tests run automatically
-on those pushes. For pull requests, they wait for approval in the
-`integration-approval` environment; the `Integration gate` check fails if
-either scenario does not pass. Maintainers can also run the workflow manually
-or call it as a reusable workflow with the Boolean `run_integration_tests`
-input. When that input is false, those runs skip integration tests.
-The workflow distinguishes direct runs from reusable calls using its
-repository and workflow path; update that comparison if either changes.
+`main` are opened, updated, or reopened. Runner-local integration tests run
+automatically on those events. For pull requests, the `Integration gate`
+check fails if either scenario does not pass. GitHub's fork workflow approval
+settings may still require approval for some pull requests.
+
+The external peer test runs automatically on pushes to `main`. Maintainers can
+also run it manually on a trusted branch using the `run-external-integration-tests`
+input. The release workflow requests the external test against its built
+bundles. Maintainers can request runner-local integration on manual runs or
+reusable calls with the `run-integration-tests` input. The workflow distinguishes
+direct runs from reusable calls using its repository and workflow path; update
+that comparison if either changes.
 
 Tag pushes do not publish a release or deploy the action. Tags pushed by a
 workflow using `GITHUB_TOKEN` generally do not trigger this workflow.
@@ -98,9 +102,9 @@ deliberate setup failure, and post-job cleanup. The peer is on the same runner,
 so these checks do not verify reachability to an external server. They require
 no persistent WireGuard credentials.
 
-Review changes to the workflow and test harness before approving a run. Do
-not pass production secrets to pull requests or run untrusted pull request code
-with privileged credentials. Required checks are configured in GitHub's
+Review changes to the workflow and test harness. Do not pass production secrets
+to pull requests or run untrusted pull request code with privileged credentials.
+Required checks are configured in GitHub's
 mainline ruleset, not solely by the workflow. The `Integration gate` must
 remain a required check. The current ruleset does not require independent
 review of workflow and test changes, which could bypass the gate; review them
@@ -112,19 +116,21 @@ replace a security review or establish production readiness.
 
 ### 🌐 External Peer Test
 
-The manually dispatched **External WireGuard integration** workflow builds the
-checked-out action, connects to a separately configured peer, requests a private
-HTTP service through the tunnel interface, and checks for remaining action
-interfaces and configuration files after the action's post step. It does not
-replace the runner-local scenarios, test DNS restoration, or establish
-production readiness. A terminated runner may not execute either post step.
+The **Build and test WireGuard Connect** workflow builds the checked-out
+action, connects to a separately configured peer, requests a private HTTP
+service through the tunnel interface, and checks for remaining action interfaces
+and configuration files after the action's post step. It does not replace the
+runner-local scenarios, test DNS restoration, or establish production readiness.
+A terminated runner may not execute either post step.
 
 Before running it, create a GitHub Actions environment named
-`external-integration`. Restrict its deployment branches to `main` and enable
-required reviewers where available. Protect `main` and review workflow and
-dependency changes: code that can run with these credentials can expose them.
-Keep the credentials in this environment, not repository-wide secrets, and do
-not approve untrusted code. The workflow itself also limits its job to `main`.
+`external-integration`. Allow deployments from `main` and the trusted
+repository branches used for manual tests, without required reviewers.
+Protect `main` and review workflow and dependency changes: code that can run
+with these credentials can expose them. Keep the credentials in this
+environment, not repository-wide secrets. Never run the external test on
+untrusted code or a fork pull request. The repository currently restricts pull
+request creation to collaborators.
 
 Configure these environment secrets:
 
@@ -151,12 +157,16 @@ variables and ensure the DNS server is reachable through the permitted routes.
 Allow inbound WireGuard UDP traffic to the peer. Keep tunnel routes narrow:
 full-tunnel routing can disrupt the runner's connection to GitHub.
 
-After merging the workflow into `main`, run it from the Actions tab with
-`main` selected and approve the environment deployment if required. Runs are
-serialised within this workflow because the same peer cannot safely be shared
-by concurrent runners. Other workflows must not use that peer concurrently.
-The cleanup observer checks the runner before and after the action, but cannot
-verify cleanup when the runner terminates unexpectedly.
+After merging the workflow into `main`, the external test runs on every push to
+`main`. To test a trusted pull request, select its repository branch in the
+Actions tab, run **Build and test WireGuard Connect**, and enable
+`run-external-integration-tests`. This tests the selected branch revision, not
+GitHub's pull request merge commit; the branch must include this workflow
+change. Runs share a concurrency group because the same peer cannot safely be
+used by concurrent runners. GitHub may replace a pending run when another is
+queued. Other workflows must not use that peer concurrently. The cleanup
+observer checks the runner before and after the action, but cannot verify
+cleanup when the runner terminates unexpectedly.
 
 ## 🧭 Spec Kit
 
@@ -168,29 +178,31 @@ constitution through `/speckit-constitution` when project principles change.
 Spec Kit requires its managed workflow to retain the `workflow.yml` filename;
 do not rename it to `.yaml`.
 
-## 📦 Experimental MVP Release
+## 📦 Release Preparation
 
-The planned `v0.1.0` release is experimental and unsupported for production.
-Runner-local integration tests do not verify external peer connectivity or
-establish production readiness. Do not recommend production use until
-behaviour, security controls, platform coverage, and cleanup have been validated.
+There is no supported production release yet. Do not recommend production use
+until behaviour, security controls, platform coverage, and cleanup have been
+validated.
 
-To publish the MVP:
+To prepare a release:
 
 1. Merge the release preparation changes into `main` and confirm its checks
    pass. Verify the GitHub-managed CodeQL scan succeeded for that exact commit
    and review its alerts; the release workflow does not enforce this check.
    Complete a security review before production use.
-2. Run **Prepare release tag** from `main`, specifying `v0.1.0`. The workflow
-   runs checks, tests the generated bundles against a disposable peer, and
-   pushes a tag pointing to a separate commit containing those bundles. It
-   refuses existing tags and checks that `main` has not changed before tagging.
+2. Run **Prepare release tag** from `main` with the intended version. The
+   workflow requires the latest push-triggered CI run for that exact commit to
+   have succeeded, including both Node.js checks and the runner-local and
+   external integration jobs. It then tests the generated bundles against both
+   peers and pushes a tag pointing to a separate commit containing those
+   bundles. It refuses existing tags and checks that `main` has not changed
+   before tagging. If CI has not completed, failed, or cannot be verified,
+   release preparation fails.
 3. From the repository's `action.yaml` on GitHub, select **Draft a release**
-   and select the existing `v0.1.0` tag. Do not create a tag directly from
-   `main`: it would not contain the action bundles.
-4. Mark the release as a pre-release and explain in its notes that the MVP is
-   experimental, targets GitHub-hosted Ubuntu, and has only runner-local
-   integration coverage. Do not move or reuse the version tag.
+   and select the tag created in the previous step. Do not create a tag
+   directly from `main`: it would not contain the action bundles.
+4. Describe the verified platform scope and remaining limitations in the
+   release notes. Do not move or reuse the version tag.
 5. To list the action on GitHub Marketplace, select **Publish this Action to
    the GitHub Marketplace** and follow GitHub's prompts. The action name must
    be available, the repository owner must accept the Marketplace Developer

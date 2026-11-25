@@ -56,6 +56,6 @@ certification.
 
 Unit tests cover input validation and platform command construction. Integration
 tests exercise privileged networking, DNS, and teardown against a peer isolated
-on the same GitHub-hosted Ubuntu runner. An optional manual test connects to an
-external peer; its availability alone does not establish external connectivity
-or production readiness.
+on the same GitHub-hosted Ubuntu runner. An external-peer test runs on `main`
+and can be requested on a trusted branch; its availability alone does not
+establish external connectivity or production readiness.

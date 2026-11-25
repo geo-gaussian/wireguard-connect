@@ -13,13 +13,20 @@ permissions:
 
 jobs:
   checks:
+    needs: build
     uses: ./.github/workflows/build-and-test.yaml
+    secrets: inherit
     with:
-      run_integration_tests: false
+      run-integration-tests: false
+      run-external-integration-tests: true
+      release-bundle-name: release-bundles
 
-  build:
-    name: Build release bundles
+  verify-ci:
+    name: Verify main CI
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -30,6 +37,21 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: sh scripts/validate-release.sh
+      - name: Verify successful CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/verify-main-ci.mts
+
+  build:
+    name: Build release bundles
+    needs: verify-ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
       - name: Build bundles
         uses: ./.github/actions/build-bundles
       - name: Check both bundles exist
