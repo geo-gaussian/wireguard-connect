@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REPORT_COVERAGE: >-
-        ${{ github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref) &&
+        ${{ github.workflow_ref == format('{0}/.github/workflows/build-and-test.yaml@{1}', github.repository, github.ref) &&
         (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) }}
     outputs:
       coverage-upload-outcome: ${{ steps.upload-coverage.outcome }}
@@ -80,13 +80,13 @@ jobs:
       - name: Check both release bundles are tracked
         if: >-
           github.event_name == 'push' && github.ref_type == 'tag' &&
-          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
+          github.workflow_ref == format('{0}/.github/workflows/build-and-test.yaml@{1}', github.repository, github.ref)
         run: git ls-files --error-unmatch dist/main/index.js dist/post/index.js
 
       - name: Check release bundles match the build
         if: >-
           github.event_name == 'push' && github.ref_type == 'tag' &&
-          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
+          github.workflow_ref == format('{0}/.github/workflows/build-and-test.yaml@{1}', github.repository, github.ref)
         run: git diff --exit-code -- dist
 
       - name: Upload coverage to Codecov
@@ -106,7 +106,7 @@ jobs:
     name: Unit test coverage
     needs: checks
     if: >-
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref) &&
+      github.workflow_ref == format('{0}/.github/workflows/build-and-test.yaml@{1}', github.repository, github.ref) &&
       (github.event_name == 'pull_request' ||
       (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
@@ -133,7 +133,7 @@ jobs:
       - name: Build integration bundles
         if: >-
           ${{ inputs.release-bundle-name == '' && !(github.event_name == 'push' && github.ref_type == 'tag' &&
-          github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)) }}
+          github.workflow_ref == format('{0}/.github/workflows/build-and-test.yaml@{1}', github.repository, github.ref)) }}
         uses: ./.github/actions/build-bundles
       - name: Download release bundles
         if: inputs.release-bundle-name != ''
@@ -150,7 +150,7 @@ jobs:
     name: Integration gate
     if: >-
       always() && github.event_name == 'pull_request' &&
-      github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref)
+      github.workflow_ref == format('{0}/.github/workflows/build-and-test.yaml@{1}', github.repository, github.ref)
     needs: integration
     runs-on: ubuntu-latest
     steps:
@@ -161,11 +161,11 @@ jobs:
   external-integration:
     name: Test external WireGuard peer
     if: >-
-      github.repository == 'geo-gaussian/wireguard-connect' &&
-      ((github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/build-and-test.yaml@{0}', github.ref) &&
+      github.repository == vars.TRUSTED_INTEGRATION_REPOSITORY &&
+      ((github.workflow_ref == format('{0}/.github/workflows/build-and-test.yaml@{1}', github.repository, github.ref) &&
       ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_dispatch' && startsWith(github.ref, 'refs/heads/') && inputs.run-external-integration-tests))) ||
-      (github.workflow_ref == format('geo-gaussian/wireguard-connect/.github/workflows/prepare-release.yaml@{0}', github.ref) &&
+      (github.workflow_ref == format('{0}/.github/workflows/prepare-release.yaml@{1}', github.repository, github.ref) &&
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run-external-integration-tests))
     environment: external-integration
     runs-on: ubuntu-latest
